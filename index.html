@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Emolio el RPG v5.0 - Save & Load Edition</title>
+  <title>Emolio el RPG v6.0 - Castle & Boss Edition</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Roboto, sans-serif; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; }
@@ -45,36 +45,62 @@
       #rotate-screen { display: flex; }
     }
 
-    /* HUD */
+    /* HUD Superior Izquierdo */
     #hud {
       position: absolute;
       top: 10px;
       left: 10px;
-      right: 10px;
       display: flex;
-      justify-content: space-between;
+      gap: 10px;
       pointer-events: none;
       z-index: 10;
     }
     .hud-card {
       background: rgba(15, 23, 42, 0.85);
       border: 2px solid #3b82f6;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 8px;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 13px;
       color: #f8fafc;
       box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
     }
 
-    /* Marca de agua */
+    /* Panel Superior Derecho (Botones ordenados) */
+    #top-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      flex-direction: row;
+      gap: 6px;
+      z-index: 15;
+    }
+    .top-btn {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #64748b;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .top-btn:active { transform: scale(0.95); }
+    #save-btn { border-color: #22c55e; color: #4ade80; }
+    #load-btn { border-color: #3b82f6; color: #60a5fa; }
+    #reload-btn { border-color: #f59e0b; color: #fbbf24; }
+    #fs-btn { border-color: #a855f7; color: #c084fc; }
+
+    /* Marca de agua corregida */
     #watermark {
       position: absolute;
-      top: 50px;
+      bottom: 75px;
       left: 15px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
-      color: rgba(255, 255, 255, 0.4);
+      color: rgba(255, 255, 255, 0.35);
       letter-spacing: 1.5px;
       pointer-events: none;
       z-index: 10;
@@ -89,9 +115,9 @@
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 12px;
+      gap: 10px;
       background: rgba(15, 23, 42, 0.9);
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 14px;
       border: 2px solid #475569;
       box-shadow: 0 0 15px rgba(0,0,0,0.8);
@@ -101,20 +127,40 @@
       background: #1e293b;
       border: 2px solid #3b82f6;
       color: #fff;
-      padding: 8px 14px;
+      padding: 6px 12px;
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
-      font-size: 13px;
+      font-size: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
       touch-action: manipulation;
-      transition: all 0.15s ease;
     }
     .hero-btn:active { transform: scale(0.95); }
     .hero-btn span { font-size: 10px; color: #fbbf24; margin-top: 2px; }
     .hero-btn:disabled { opacity: 0.3; border-color: #64748b; }
+
+    /* Alerta / Barra del Jefe Final */
+    #boss-bar-container {
+      position: absolute;
+      top: 55px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 2px solid #ef4444;
+      border-radius: 8px;
+      padding: 6px 12px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      z-index: 12;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+    }
+    #boss-title { font-size: 12px; font-weight: bold; color: #fca5a5; margin-bottom: 4px; text-transform: uppercase; }
+    .boss-hp-bg { width: 100%; height: 10px; background: #450a0a; border-radius: 4px; overflow: hidden; }
+    #boss-hp-fill { width: 100%; height: 100%; background: #ef4444; transition: width 0.1s; }
 
     /* Modales Roguelike */
     .modal {
@@ -127,67 +173,22 @@
       justify-content: center;
       z-index: 20;
     }
-    .modal h2 { font-size: 26px; color: #fbbf24; margin-bottom: 20px; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+    .modal h2 { font-size: 24px; color: #fbbf24; margin-bottom: 20px; }
     .cards-wrapper { display: flex; gap: 15px; }
     .card-item {
-      width: 160px;
-      height: 220px;
-      background: #1e293b;
-      border: 3px solid #f59e0b;
-      border-radius: 10px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      text-align: center;
-      cursor: pointer;
-      box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+      width: 150px; height: 210px; background: #1e293b; border: 3px solid #f59e0b;
+      border-radius: 10px; padding: 12px; display: flex; flex-direction: column;
+      justify-content: space-between; align-items: center; text-align: center; cursor: pointer;
     }
-    .card-item h3 { color: #fbbf24; font-size: 15px; }
-    .card-item p { font-size: 12px; color: #cbd5e1; }
+    .card-item h3 { color: #fbbf24; font-size: 14px; }
+    .card-item p { font-size: 11px; color: #cbd5e1; }
     .btn-select { background: #f59e0b; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; color: #000; }
 
-    /* Barra Superior de Botones de Control */
-    #top-controls {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      gap: 8px;
-      z-index: 15;
-    }
-    .top-btn {
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid #64748b;
-      color: white;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .top-btn:active { transform: scale(0.95); }
-    #save-btn { border-color: #22c55e; color: #4ade80; }
-    #load-btn { border-color: #3b82f6; color: #60a5fa; }
-    #reload-btn { border-color: #f59e0b; color: #fbbf24; }
-
-    /* Notificación emergente Toast */
+    /* Toast Notification */
     #toast {
-      position: absolute;
-      top: 60px;
-      right: 10px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 2px solid #22c55e;
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: bold;
-      display: none;
-      z-index: 25;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      position: absolute; top: 50px; right: 10px; background: rgba(15, 23, 42, 0.95);
+      border: 2px solid #22c55e; color: #fff; padding: 8px 14px; border-radius: 8px;
+      font-size: 12px; font-weight: bold; display: none; z-index: 25;
     }
   </style>
 </head>
@@ -199,24 +200,31 @@
   </div>
 
   <div id="game-container">
-    <div id="top-controls">
-      <button class="top-btn" id="save-btn" onclick="saveGame()">💾 Guardar</button>
-      <button class="top-btn" id="load-btn" onclick="loadGame()">📂 Cargar</button>
-      <button class="top-btn" id="reload-btn" onclick="location.reload(true)">🔄 Recargar</button>
-      <button class="top-btn" id="fs-btn" onclick="goFullscreen()">⛶ Fullscreen</button>
-    </div>
-
-    <div id="toast"></div>
-    <div id="watermark">Creado por Dani v2</div>
-    
-    <canvas id="gameCanvas" width="1280" height="720"></canvas>
-
     <div id="hud">
       <div class="hud-card">🏰 Base: <span id="hp-txt">1000</span></div>
       <div class="hud-card">⚔️ Oleada: <span id="wave-txt">1</span></div>
       <div class="hud-card">💧 Maná: <span id="mana-txt">100</span></div>
       <div class="hud-card">🪙 Oro: <span id="gold-txt">0</span></div>
     </div>
+
+    <!-- Panel de Botones superior derecho perfectamente alineados -->
+    <div id="top-controls">
+      <button class="top-btn" id="save-btn" onclick="saveGame()">💾 Guardar</button>
+      <button class="top-btn" id="load-btn" onclick="loadGame()">📂 Cargar</button>
+      <button class="top-btn" id="reload-btn" onclick="location.reload(true)">🔄 Recargar</button>
+      <button class="top-btn" id="fs-btn" onclick="goFullscreen()">⛶ Pantalla Completa</button>
+    </div>
+
+    <!-- Barra de Vida del Jefe -->
+    <div id="boss-bar-container">
+      <div id="boss-title">⚠️ ¡JEFE FINAL DE OLEADA! ⚠️</div>
+      <div class="boss-hp-bg"><div id="boss-hp-fill"></div></div>
+    </div>
+
+    <div id="toast"></div>
+    <div id="watermark">Creado por Dani v2</div>
+    
+    <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
     <div id="hero-bar">
       <button class="hero-btn" onclick="spawnHero('knight')" id="b-knight">🗡️ Guerrero<span>30 M</span></button>
@@ -257,7 +265,8 @@ let game = {
   baseHp: 1000,
   maxBaseHp: 1000,
   paused: false,
-  inWave: true
+  inWave: true,
+  bossSpawned: false
 };
 
 const HERO_TYPES = {
@@ -272,60 +281,71 @@ let enemies = [];
 let projectiles = [];
 let particles = [];
 
-// --- SISTEMA DE GUARDADO Y CARGA ---
 function saveGame() {
-  const saveData = {
-    game: game,
-    heroTypes: HERO_TYPES
-  };
+  const saveData = { game: game, heroTypes: HERO_TYPES };
   localStorage.setItem('emolio_rpg_save', JSON.stringify(saveData));
   showToast('💾 Partida Guardada');
 }
 
 function loadGame() {
   const saved = localStorage.getItem('emolio_rpg_save');
-  if (!saved) {
-    showToast('⚠️ No hay partida guardada', '#ef4444');
-    return;
-  }
+  if (!saved) { showToast('⚠️ No hay partida guardada', '#ef4444'); return; }
   
   const parsed = JSON.parse(saved);
   game = parsed.game;
   Object.assign(HERO_TYPES, parsed.heroTypes);
 
-  // Limpiar mapa al cargar
-  heroes = [];
-  enemies = [];
-  projectiles = [];
-  particles = [];
-  
-  game.inWave = true;
-  game.paused = false;
+  heroes = []; enemies = []; projectiles = []; particles = [];
+  game.inWave = true; game.paused = false; game.bossSpawned = false;
   document.getElementById('card-modal').style.display = 'none';
+  document.getElementById('boss-bar-container').style.display = 'none';
   
   startWave();
   showToast('📂 Partida Cargada', '#3b82f6');
 }
 
 function startWave() {
-  const isBoss = game.wave % 5 === 0;
-  let count = isBoss ? 1 : 4 + game.wave * 2;
+  game.bossSpawned = false;
+  document.getElementById('boss-bar-container').style.display = 'none';
+  let count = 3 + game.wave * 2;
 
+  // Spawnea secuencialmente las tropas normales
   for (let i = 0; i < count; i++) {
     enemies.push({
-      x: 1300 + (i * (isBoss ? 0 : 70)),
+      x: 1300 + (i * 65),
       y: 380 + (Math.random() * 180 - 90),
-      hp: isBoss ? 1000 + game.wave * 400 : 60 + game.wave * 25,
-      maxHp: isBoss ? 1000 + game.wave * 400 : 60 + game.wave * 25,
-      dmg: isBoss ? 60 : 10 + game.wave * 3,
-      speed: isBoss ? 0.4 : 0.7 + Math.random() * 0.4,
-      range: isBoss ? 70 : 35,
-      atkSpeed: isBoss ? 60 : 45,
+      hp: 60 + game.wave * 22,
+      maxHp: 60 + game.wave * 22,
+      dmg: 10 + game.wave * 3,
+      speed: 0.7 + Math.random() * 0.4,
+      range: 35,
+      atkSpeed: 45,
       timer: 0,
-      isBoss: isBoss,
+      isBoss: false,
       anim: Math.random() * 10
     });
   }
+}
+
+function spawnBoss() {
+  game.bossSpawned = true;
+  document.getElementById('boss-bar-container').style.display = 'flex';
+  
+  let bossHp = 800 + game.wave * 350;
+  enemies.push({
+    x: 1350,
+    y: 380,
+    hp: bossHp,
+    maxHp: bossHp,
+    dmg: 40 + game.wave * 12,
+    speed: 0.45,
+    range: 75,
+    atkSpeed: 55,
+    timer: 0,
+    isBoss: true,
+    anim: 0
+  });
+  showToast('💀 ¡EL JEFE HA LLEGADO!', '#ef4444');
 }
 
 function spawnHero(typeKey) {
@@ -392,20 +412,37 @@ function update() {
       e.x -= e.speed;
     }
 
+    if (e.isBoss) {
+      let fill = Math.max(0, (e.hp / e.maxHp) * 100);
+      document.getElementById('boss-hp-fill').style.width = fill + '%';
+    }
+
     if (e.hp <= 0) {
-      game.gold += e.isBoss ? 120 : 15;
-      for (let i = 0; i < 10; i++) {
+      game.gold += e.isBoss ? 150 : 15;
+      for (let i = 0; i < (e.isBoss ? 25 : 10); i++) {
         particles.push({
           x: e.x, y: e.y - 20,
-          vx: (Math.random() - 0.5) * 6,
-          vy: (Math.random() - 0.5) * 6,
+          vx: (Math.random() - 0.5) * 8,
+          vy: (Math.random() - 0.5) * 8,
           color: e.isBoss ? '#ef4444' : '#8b5cf6',
-          life: 20
+          life: 25
         });
       }
+      if (e.isBoss) document.getElementById('boss-bar-container').style.display = 'none';
       enemies.splice(eIdx, 1);
     }
   });
+
+  // Lógica de aparición del Jefe Final de la Oleada
+  if (enemies.length === 0 && !game.bossSpawned && game.inWave) {
+    spawnBoss();
+  }
+
+  // Fin de la oleada tras derrotar al Jefe
+  if (enemies.length === 0 && game.bossSpawned && game.inWave) {
+    game.inWave = false;
+    showCards();
+  }
 
   // Proyectiles
   projectiles.forEach((p, pIdx) => {
@@ -424,16 +461,9 @@ function update() {
 
   // Partículas
   particles.forEach((pt, ptIdx) => {
-    pt.x += pt.vx;
-    pt.y += pt.vy;
-    pt.life--;
+    pt.x += pt.vx; pt.y += pt.vy; pt.life--;
     if (pt.life <= 0) particles.splice(ptIdx, 1);
   });
-
-  if (enemies.length === 0 && game.inWave) {
-    game.inWave = false;
-    showCards();
-  }
 
   // Actualizar UI
   document.getElementById('hp-txt').innerText = Math.max(0, Math.floor(game.baseHp));
@@ -447,17 +477,51 @@ function update() {
   document.getElementById('b-paladin').disabled = game.mana < HERO_TYPES.paladin.cost;
 }
 
-// --- RENDERING ---
-function drawTree(x, y, scale) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(scale, scale);
-  ctx.fillStyle = '#3f2314'; ctx.fillRect(-8, -40, 16, 40);
-  ctx.fillStyle = '#15803d';
-  ctx.beginPath(); ctx.arc(0, -50, 25, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(-15, -40, 20, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(15, -40, 20, 0, Math.PI*2); ctx.fill();
-  ctx.restore();
+// --- RENDERIZADO ILUSTRADO (CASTILLO MEJORADO Y PERSONAJES) ---
+
+function drawCastle() {
+  // Torre Principal del Castillo
+  let g1 = ctx.createLinearGradient(0, 0, 150, 0);
+  g1.addColorStop(0, '#1e293b'); g1.addColorStop(1, '#475569');
+  ctx.fillStyle = g1;
+  ctx.fillRect(0, 110, 150, 500);
+
+  // Almenas / Muralla Superior
+  ctx.fillStyle = '#334155';
+  for (let x = 0; x < 150; x += 30) {
+    ctx.fillRect(x, 90, 18, 25);
+  }
+
+  // Ladrillos detallados
+  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
+  for (let y = 120; y < 600; y += 25) {
+    let offset = (y / 25) % 2 === 0 ? 0 : 20;
+    for (let x = offset; x < 150; x += 40) {
+      ctx.strokeRect(x, y, 40, 25);
+    }
+  }
+
+  // Portón de Madera Reforzada
+  let gateGrad = ctx.createLinearGradient(90, 0, 140, 0);
+  gateGrad.addColorStop(0, '#451a03'); gateGrad.addColorStop(1, '#78350f');
+  ctx.fillStyle = gateGrad;
+  ctx.beginPath();
+  ctx.arc(140, 420, 40, Math.PI, Math.PI * 2);
+  ctx.fillRect(100, 420, 50, 80);
+  ctx.fill();
+
+  // Herrajes y Remaches del portón
+  ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(100, 440); ctx.lineTo(150, 440); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(100, 480); ctx.lineTo(150, 480); ctx.stroke();
+
+  // Banderines Rojos Flameando
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath(); ctx.moveTo(20, 90); ctx.lineTo(20, 60); ctx.lineTo(45, 70); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(120, 90); ctx.lineTo(120, 60); ctx.lineTo(145, 70); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#78350f'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(20, 90); ctx.lineTo(20, 55); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(120, 90); ctx.lineTo(120, 55); ctx.stroke();
 }
 
 function drawHeroModel(type, x, y, anim) {
@@ -491,21 +555,20 @@ function drawHeroModel(type, x, y, anim) {
   }
 
   ctx.fillStyle = '#1e293b';
-  ctx.fillRect(-6, -13, 5, 13);
-  ctx.fillRect(1, -13, 5, 13);
+  ctx.fillRect(-6, -13, 5, 13); ctx.fillRect(1, -13, 5, 13);
   ctx.restore();
 }
 
 function drawEnemyModel(x, y, anim, isBoss) {
   ctx.save();
   ctx.translate(x, y + Math.sin(anim) * 4);
-  let s = isBoss ? 2.0 : 1.1;
+  let s = isBoss ? 2.2 : 1.1;
   ctx.scale(s, s);
 
   ctx.fillStyle = isBoss ? '#450a0a' : '#334155'; ctx.fillRect(-12, -38, 24, 26);
   ctx.fillStyle = '#dc2626';
-  ctx.beginPath(); ctx.moveTo(-8, -48); ctx.lineTo(-14, -60); ctx.lineTo(-4, -50); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(8, -48); ctx.lineTo(14, -60); ctx.lineTo(4, -50); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-8, -48); ctx.lineTo(-16, -62); ctx.lineTo(-4, -50); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(8, -48); ctx.lineTo(16, -62); ctx.lineTo(4, -50); ctx.fill();
   ctx.fillStyle = isBoss ? '#7f1d1d' : '#1e293b'; ctx.fillRect(-9, -50, 18, 14);
   ctx.fillStyle = '#ef4444'; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 8;
   ctx.fillRect(-6, -46, 4, 3); ctx.fillRect(2, -46, 4, 3);
@@ -517,67 +580,49 @@ function drawEnemyModel(x, y, anim, isBoss) {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Escenario
   let bgGradient = ctx.createLinearGradient(0, 0, 0, 720);
-  bgGradient.addColorStop(0, '#090d16');
-  bgGradient.addColorStop(0.4, '#1e112a');
-  bgGradient.addColorStop(1, '#0a0512');
+  bgGradient.addColorStop(0, '#090d16'); bgGradient.addColorStop(0.4, '#1e112a'); bgGradient.addColorStop(1, '#0a0512');
   ctx.fillStyle = bgGradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  drawTree(220, 270, 0.9);
-  drawTree(380, 265, 0.7);
-  drawTree(750, 270, 0.85);
-  drawTree(920, 260, 0.75);
-
   let floorGrad = ctx.createLinearGradient(0, 270, 0, 720);
-  floorGrad.addColorStop(0, '#166534');
-  floorGrad.addColorStop(0.15, '#14532d');
-  floorGrad.addColorStop(1, '#052e16');
+  floorGrad.addColorStop(0, '#166534'); floorGrad.addColorStop(0.15, '#14532d'); floorGrad.addColorStop(1, '#052e16');
   ctx.fillStyle = floorGrad;
   ctx.fillRect(0, 270, canvas.width, 450);
 
   ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(0, 270); ctx.lineTo(canvas.width, 270); ctx.stroke();
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-  for (let x = 180; x < canvas.width; x += 60) {
-    for (let y = 300; y < 700; y += 45) {
-      ctx.fillRect(x + (y % 2 === 0 ? 15 : 0), y, 40, 20);
-    }
-  }
+  // Render Castillo Ilustrado
+  drawCastle();
 
-  let castleGrad = ctx.createLinearGradient(0, 0, 150, 0);
-  castleGrad.addColorStop(0, '#0f172a');
-  castleGrad.addColorStop(1, '#334155');
-  ctx.fillStyle = castleGrad;
-  ctx.fillRect(0, 130, 150, 480);
-
-  ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
-  for (let y = 140; y < 600; y += 30) {
-    ctx.strokeRect(0, y, 150, 30);
-  }
-
+  // Sombras
   heroes.concat(enemies).forEach(u => {
-    let rx = u.isBoss ? 40 : 18;
+    let rx = u.isBoss ? 45 : 18;
     ctx.beginPath();
     ctx.ellipse(u.x, u.y, rx, rx / 2.5, 0, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.fill();
   });
 
+  // Héroes
   heroes.forEach(h => {
     drawHeroModel(h.type, h.x, h.y, h.anim);
     ctx.fillStyle = '#000'; ctx.fillRect(h.x - 16, h.y - 68, 32, 5);
     ctx.fillStyle = '#38bdf8'; ctx.fillRect(h.x - 15, h.y - 67, (h.hp / h.maxHp) * 30, 3);
   });
 
+  // Enemigos
   enemies.forEach(e => {
     drawEnemyModel(e.x, e.y, e.anim, e.isBoss);
-    let bw = e.isBoss ? 60 : 32;
-    ctx.fillStyle = '#000'; ctx.fillRect(e.x - bw/2, e.y - (e.isBoss ? 110 : 68), bw, 6);
-    ctx.fillStyle = '#ef4444'; ctx.fillRect(e.x - bw/2 + 1, e.y - (e.isBoss ? 109 : 67), (e.hp / e.maxHp) * (bw - 2), 4);
+    if (!e.isBoss) {
+      ctx.fillStyle = '#000'; ctx.fillRect(e.x - 16, e.y - 68, 32, 5);
+      ctx.fillStyle = '#ef4444'; ctx.fillRect(e.x - 15, e.y - 67, (e.hp / e.maxHp) * 30, 3);
+    }
   });
 
+  // Proyectiles
   projectiles.forEach(p => {
     ctx.save();
     if (p.type === 'mage') {
@@ -590,9 +635,9 @@ function draw() {
     ctx.restore();
   });
 
+  // Partículas
   particles.forEach(pt => {
-    ctx.fillStyle = pt.color;
-    ctx.fillRect(pt.x, pt.y, 4, 4);
+    ctx.fillStyle = pt.color; ctx.fillRect(pt.x, pt.y, 4, 4);
   });
 }
 
