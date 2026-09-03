@@ -2,191 +2,593 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Emolio el RPG</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { background: #1a1a1a; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-    #game-container { position: relative; width: 800px; height: 450px; border: 4px solid #ffd700; border-radius: 12px; overflow: hidden; background: #2c3e50; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-    canvas { display: block; background: linear-gradient(to bottom, #2c3e50, #1a252f); }
-    #ui-overlay { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; text-shadow: 2px 2px 4px #000; }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; }
     
-    /* Cartas Roguelike */
-    #cards-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px; z-index: 10; }
-    #cards-modal h2 { color: #ffd700; font-size: 28px; text-shadow: 0 0 10px #ffd700; }
-    .cards-container { display: flex; gap: 20px; }
-    .card { width: 160px; height: 220px; background: #222; border: 3px solid #ff9900; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 15px; text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-    .card:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 0 20px #ff9900; }
-    .card-title { font-size: 16px; font-weight: bold; color: #ffd700; }
-    .card-desc { font-size: 13px; color: #ccc; }
-    .card-btn { background: #ff9900; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    /* Contenedor principal adaptable */
+    #game-wrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0d0e15;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      box-shadow: 0 0 30px rgba(0,0,0,0.9);
+    }
+
+    /* Orientación Horizontal Obligatoria */
+    #rotate-device {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #111;
+      z-index: 9999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    #rotate-device h2 { color: #f39c12; margin-bottom: 10px; }
+
+    @media screen and (orientation: portrait) {
+      #rotate-device { display: flex; }
+    }
+
+    /* HUD Superior */
+    #hud {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hud-box {
+      background: rgba(16, 20, 31, 0.85);
+      border: 2px solid #34495e;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Barra de Reclutamiento Inferior */
+    #deploy-bar {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      background: rgba(16, 20, 31, 0.9);
+      padding: 10px;
+      border-radius: 12px;
+      border: 2px solid #5d6d7e;
+      z-index: 10;
+    }
+    .deploy-btn {
+      background: #2c3e50;
+      border: 2px solid #e74c3c;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .deploy-btn:hover { background: #34495e; transform: translateY(-3px); }
+    .deploy-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .deploy-btn span { font-size: 11px; color: #f1c40f; margin-top: 2px; }
+
+    /* Ventanas Emergentes (Cartas Roguelike y Meta-Progreso) */
+    .overlay-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(5, 7, 12, 0.92);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .overlay-modal h2 { font-size: 32px; color: #f1c40f; margin-bottom: 25px; text-shadow: 0 0 10px rgba(241,196,15,0.5); }
+
+    .cards-wrapper { display: flex; gap: 20px; }
+    .card {
+      width: 180px;
+      height: 250px;
+      background: linear-gradient(145deg, #1f2430, #0f1219);
+      border: 3px solid #f39c12;
+      border-radius: 12px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .card:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 0 25px #f39c12; border-color: #fff; }
+    .card h3 { color: #f1c40f; font-size: 18px; }
+    .card p { font-size: 13px; color: #bdc3c7; margin: 10px 0; }
+
+    /* Menú Tienda Power-Up (Meta-Progreso) */
+    .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 80%; max-width: 600px; }
+    .shop-item {
+      background: #1a252f;
+      border: 2px solid #34495e;
+      padding: 15px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-action {
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-action:hover { background: #2ecc71; }
+
+    #fullscreen-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      z-index: 15;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid #fff;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <div id="game-container">
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
-    
-    <div id="ui-overlay">
-      <div id="wave-txt">Oleada: 1</div>
-      <div id="gold-txt">Oro: 0 🪙</div>
+  <div id="rotate-device">
+    <h2>📱 Por favor, gira tu dispositivo</h2>
+    <p>Emolio el RPG está optimizado para jugarse en modo horizontal.</p>
+  </div>
+
+  <div id="game-wrapper">
+    <button id="fullscreen-btn" onclick="toggleFullscreen()"> Pantalla Completa</button>
+    <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+    <!-- HUD General -->
+    <div id="hud">
+      <div class="hud-box">🏰 Base HP: <span id="base-hp">1000</span></div>
+      <div class="hud-box">⚔️ Oleada: <span id="wave-num">1</span></div>
+      <div class="hud-box">💧 Maná: <span id="mana-num">50</span></div>
+      <div class="hud-box">🪙 Oro: <span id="gold-num">0</span></div>
     </div>
 
-    <div id="cards-modal">
-      <h2>¡SUBIDA DE NIVEL! ELIGE UNA CARTA</h2>
-      <div class="cards-container" id="cards-list"></div>
+    <!-- Barra de Invocación -->
+    <div id="deploy-bar">
+      <button class="deploy-btn" onclick="deployHero('knight')" id="btn-knight">🗡️ Guerrero<span>30 Maná</span></button>
+      <button class="deploy-btn" onclick="deployHero('archer')" id="btn-archer">🏹 Arquera<span>40 Maná</span></button>
+      <button class="deploy-btn" onclick="deployHero('mage')" id="btn-mage">🔥 Mago<span>60 Maná</span></button>
+      <button class="deploy-btn" onclick="deployHero('paladin')" id="btn-paladin">🛡️ Paladín<span>80 Maná</span></button>
     </div>
+
+    <!-- Modal Roguelike: Selección de Carta -->
+    <div class="overlay-modal" id="card-modal">
+      <h2>¡MEJORA TU EJÉRCITO!</h2>
+      <div class="cards-wrapper" id="cards-container"></div>
+    </div>
+
+    <!-- Modal Power-Up (Derrota / Meta-Progreso) -->
+    <div class="overlay-modal" id="meta-modal">
+      <h2>¡TUS HÉROES HAN CAÍDO!</h2>
+      <p style="margin-bottom: 20px; color:#aaa;">Usa el oro recolectado para mejorar permanentemente a tu reino:</p>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <div><strong>+Daño Base</strong><br><small id="lvl-dmg">Nivel 0 (+5%)</small></div>
+          <button class="btn-action" onclick="buyMeta('dmg')">Mejorar (<span id="cost-dmg">50</span> 🪙)</button>
+        </div>
+        <div class="shop-item">
+          <div><strong>+Salud del Castillo</strong><br><small id="lvl-hp">Nivel 0 (+200 HP)</small></div>
+          <button class="btn-action" onclick="buyMeta('hp')">Mejorar (<span id="cost-hp">50</span> 🪙)</button>
+        </div>
+        <div class="shop-item">
+          <div><strong>+Regeneración de Maná</strong><br><small id="lvl-mana">Nivel 0 (+1/s)</small></div>
+          <button class="btn-action" onclick="buyMeta('mana')">Mejorar (<span id="cost-mana">75</span> 🪙)</button>
+        </div>
+      </div>
+      <button class="btn-action" style="margin-top: 30px; background:#e74c3c; font-size: 18px;" onclick="restartGame()">Reintentar Odisea</button>
+    </div>
+
   </div>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-let wave = 1;
-let gold = 0;
-let inCardSelection = false;
+// --- PANTALLA COMPLETA & ORIENTACIÓN ---
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(()=>{});
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(()=>{});
+    }
+  } else {
+    document.exitFullscreen();
+  }
+}
 
-// Prototipo de Héroes
-const heroes = [
-  { x: 100, y: 150, color: '#3498db', range: 250, atkSpeed: 60, timer: 0, dmg: 15, name: 'Mago' },
-  { x: 100, y: 280, color: '#e74c3c', range: 180, atkSpeed: 40, timer: 0, dmg: 10, name: 'Guerrero' }
-];
+// --- ESTADO DEL JUEGO ---
+let state = {
+  gold: 0,
+  mana: 100,
+  maxMana: 100,
+  wave: 1,
+  baseHp: 1000,
+  maxBaseHp: 1000,
+  inWave: true,
+  paused: false,
+  // Meta-Progreso persistente
+  meta: { dmgLvl: 0, hpLvl: 0, manaLvl: 0 }
+};
 
-// Enemigos y Proyectiles
+// --- ESTRUCTURA DE UNIDADES ---
+const HERO_TYPES = {
+  knight: { name: 'Guerrero', hp: 200, maxHp: 200, dmg: 18, range: 40, speed: 1.2, atkSpeed: 50, cost: 30, color: '#3498db' },
+  archer: { name: 'Arquera', hp: 100, maxHp: 100, dmg: 14, range: 300, speed: 0.9, atkSpeed: 30, cost: 40, color: '#2ecc71' },
+  mage:   { name: 'Mago', hp: 90, maxHp: 90, dmg: 35, range: 220, speed: 0.8, atkSpeed: 70, cost: 60, color: '#9b59b6' },
+  paladin:{ name: 'Paladín', hp: 450, maxHp: 450, dmg: 10, range: 40, speed: 0.7, atkSpeed: 60, cost: 80, color: '#f1c40f' }
+};
+
+let heroes = [];
 let enemies = [];
 let projectiles = [];
+let particles = [];
 
-function spawnWave() {
-  const count = wave * 4;
+// --- INICIALIZACIÓN Y BUCLE PRINCIPAL ---
+function spawnEnemyWave() {
+  const isBossWave = state.wave % 5 === 0;
+  let count = isBossWave ? 1 : 5 + state.wave * 2;
+  
   for (let i = 0; i < count; i++) {
+    let isBoss = isBossWave;
     enemies.push({
-      x: 850 + (i * 45),
-      y: 120 + Math.random() * 220,
-      hp: 30 + (wave * 15),
-      maxHp: 30 + (wave * 15),
-      speed: 1 + Math.random() * 0.5,
-      color: '#2ecc71'
+      x: 1300 + (i * (isBoss ? 0 : 60)),
+      y: 350 + (Math.random() * 200 - 100),
+      hp: isBoss ? 800 + state.wave * 300 : 50 + state.wave * 20,
+      maxHp: isBoss ? 800 + state.wave * 300 : 50 + state.wave * 20,
+      dmg: isBoss ? 50 : 8 + state.wave * 2,
+      speed: isBoss ? 0.4 : 0.8 + Math.random() * 0.4,
+      range: isBoss ? 60 : 30,
+      atkSpeed: isBoss ? 60 : 40,
+      timer: 0,
+      isBoss: isBoss,
+      color: isBoss ? '#e74c3c' : '#7f8c8d'
     });
   }
 }
 
+function deployHero(type) {
+  const template = HERO_TYPES[type];
+  if (state.mana >= template.cost) {
+    state.mana -= template.cost;
+    const bonusDmg = 1 + (state.meta.dmgLvl * 0.05);
+    heroes.push({
+      ...template,
+      x: 120 + Math.random() * 40,
+      y: 320 + (Math.random() * 220 - 110),
+      dmg: template.dmg * bonusDmg,
+      timer: 0
+    });
+  }
+}
+
+// Bucle de Lógica
 function update() {
-  if (inCardSelection) return;
+  if (state.paused) return;
+
+  // Regeneración de Maná
+  if (state.mana < state.maxMana) {
+    state.mana += 0.08 + (state.meta.manaLvl * 0.02);
+  }
 
   // Lógica de Héroes
-  heroes.forEach(h => {
-    h.timer++;
-    if (h.timer >= h.atkSpeed) {
-      // Buscar enemigo cercano
-      let target = enemies.find(e => Math.hypot(e.x - h.x, e.y - h.y) < h.range);
-      if (target) {
-        projectiles.push({ x: h.x, y: h.y, target: target, dmg: h.dmg, speed: 7 });
+  heroes.forEach((h, hIdx) => {
+    // Buscar enemigo más cercano
+    let target = null;
+    let minDist = Infinity;
+    enemies.forEach(e => {
+      let d = Math.hypot(e.x - h.x, e.y - h.y);
+      if (d < minDist) { minDist = d; target = e; }
+    });
+
+    if (target && minDist <= h.range) {
+      // Atacar
+      h.timer++;
+      if (h.timer >= h.atkSpeed) {
         h.timer = 0;
+        projectiles.push({
+          x: h.x, y: h.y,
+          target: target,
+          dmg: h.dmg,
+          speed: 8,
+          color: h.color
+        });
       }
+    } else {
+      // Avanzar
+      h.x += h.speed;
+    }
+
+    if (h.hp <= 0) heroes.splice(hIdx, 1);
+  });
+
+  // Lógica de Enemigos
+  enemies.forEach((e, eIdx) => {
+    // Buscar héroe o castillo
+    let target = null;
+    let minDist = Infinity;
+    heroes.forEach(h => {
+      let d = Math.hypot(h.x - e.x, h.y - e.y);
+      if (d < minDist) { minDist = d; target = h; }
+    });
+
+    if (target && minDist <= e.range) {
+      e.timer++;
+      if (e.timer >= e.atkSpeed) {
+        e.timer = 0;
+        target.hp -= e.dmg;
+        createParticles(target.x, target.y, '#e74c3c');
+      }
+    } else if (e.x <= 150) {
+      // Atacar Base
+      state.baseHp -= e.dmg;
+      createParticles(150, e.y, '#f1c40f');
+      if (state.baseHp <= 0) gameOver();
+    } else {
+      e.x -= e.speed;
+    }
+
+    if (e.hp <= 0) {
+      state.gold += e.isBoss ? 100 : 15;
+      createParticles(e.x, e.y, '#f1c40f');
+      enemies.splice(eIdx, 1);
     }
   });
 
-  // Lógica de Proyectiles
-  projectiles.forEach((p, index) => {
+  // Lógica Proyectiles
+  projectiles.forEach((p, pIdx) => {
     let dx = p.target.x - p.x;
     let dy = p.target.y - p.y;
     let dist = Math.hypot(dx, dy);
-    
+
     if (dist < 10 || p.target.hp <= 0) {
-      if (p.target.hp > 0) p.target.hp -= p.dmg;
-      projectiles.splice(index, 1);
+      if (p.target.hp > 0) {
+        p.target.hp -= p.dmg;
+        createParticles(p.x, p.y, p.color);
+      }
+      projectiles.splice(pIdx, 1);
     } else {
       p.x += (dx / dist) * p.speed;
       p.y += (dy / dist) * p.speed;
     }
   });
 
-  // Lógica de Enemigos
-  enemies.forEach((e, index) => {
-    e.x -= e.speed;
-    if (e.hp <= 0) {
-      gold += 10;
-      enemies.splice(index, 1);
-    }
+  // Partículas
+  particles.forEach((pt, index) => {
+    pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.03;
+    if (pt.life <= 0) particles.splice(index, 1);
   });
 
-  // Siguiente Oleada / Selección de Cartas
-  if (enemies.length === 0) {
-    wave++;
-    showCardSelection();
+  // Verificar Fin de Oleada
+  if (enemies.length === 0 && state.inWave) {
+    state.inWave = false;
+    showRoguelikeCards();
   }
 
-  document.getElementById('wave-txt').innerText = `Oleada: ${wave}`;
-  document.getElementById('gold-txt').innerText = `Oro: ${gold} 🪙`;
+  // Actualizar UI
+  document.getElementById('base-hp').innerText = Math.max(0, Math.floor(state.baseHp));
+  document.getElementById('wave-num').innerText = state.wave;
+  document.getElementById('mana-num').innerText = Math.floor(state.mana);
+  document.getElementById('gold-num').innerText = state.gold;
+
+  // Habilitar/Deshabilitar Botones de Invocación
+  document.getElementById('btn-knight').disabled = state.mana < HERO_TYPES.knight.cost;
+  document.getElementById('btn-archer').disabled = state.mana < HERO_TYPES.archer.cost;
+  document.getElementById('btn-mage').disabled = state.mana < HERO_TYPES.mage.cost;
+  document.getElementById('btn-paladin').disabled = state.mana < HERO_TYPES.paladin.cost;
 }
 
+function createParticles(x, y, color) {
+  for(let i=0; i<6; i++) {
+    particles.push({
+      x: x, y: y,
+      vx: (Math.random() - 0.5)*4,
+      vy: (Math.random() - 0.5)*4,
+      life: 1, color: color
+    });
+  }
+}
+
+// Renderizado Gráfico Procedural HD
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Fondo Escenario
+  let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, '#1a1c29');
+  gradient.addColorStop(0.6, '#2b2b40');
+  gradient.addColorStop(1, '#0f1016');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Suelo/Camino
+  ctx.fillStyle = '#222533';
+  ctx.fillRect(0, 250, canvas.width, 260);
+  ctx.strokeStyle = '#32374d';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(0, 250, canvas.width, 260);
+
+  // Dibujar Castillo Base (TD)
+  ctx.fillStyle = '#4a5568';
+  ctx.fillRect(0, 180, 140, 360);
+  ctx.fillStyle = '#2d3748';
+  // Almenas del castillo
+  for(let i=0; i<180; i+=30) ctx.fillRect(110, 180 + i, 30, 15);
 
   // Dibujar Héroes
   heroes.forEach(h => {
     ctx.fillStyle = h.color;
     ctx.beginPath();
-    ctx.arc(h.x, h.y, 20, 0, Math.PI * 2);
+    ctx.arc(h.x, h.y, 18, 0, Math.PI*2);
     ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Barra de vida
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(h.x-20, h.y-30, 40, 6);
+    ctx.fillStyle = '#2ecc71';
+    ctx.fillRect(h.x-20, h.y-30, (h.hp/h.maxHp)*40, 6);
   });
 
   // Dibujar Enemigos
   enemies.forEach(e => {
     ctx.fillStyle = e.color;
-    ctx.fillRect(e.x - 15, e.y - 15, 30, 30);
-    // Barra de Vida
-    ctx.fillStyle = 'red';
-    ctx.fillRect(e.x - 15, e.y - 25, 30, 5);
-    ctx.fillStyle = 'green';
-    ctx.fillRect(e.x - 15, e.y - 25, (e.hp / e.maxHp) * 30, 5);
+    let size = e.isBoss ? 35 : 20;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, size, 0, Math.PI*2);
+    ctx.fill();
+
+    // Barra de vida
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(e.x-size, e.y-size-10, size*2, e.isBoss ? 8 : 5);
+    ctx.fillStyle = '#e74c3c';
+    ctx.fillRect(e.x-size, e.y-size-10, (e.hp/e.maxHp)*(size*2), e.isBoss ? 8 : 5);
   });
 
   // Dibujar Proyectiles
-  ctx.fillStyle = '#f1c40f';
   projectiles.forEach(p => {
+    ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, 6, 0, Math.PI*2);
     ctx.fill();
+  });
+
+  // Dibujar Partículas
+  particles.forEach(pt => {
+    ctx.fillStyle = pt.color;
+    ctx.globalAlpha = pt.life;
+    ctx.fillRect(pt.x, pt.y, 4, 4);
+    ctx.globalAlpha = 1.0;
   });
 }
 
-// Sistema de Mejores estilo Roguelike
-const cardPool = [
-  { title: "⚡ Ataque Furia", desc: "+30% Velocidad de Ataque", apply: () => heroes.forEach(h => h.atkSpeed *= 0.7) },
-  { title: "🗡️ Filo Afilado", desc: "+15 de Daño base", apply: () => heroes.forEach(h => h.dmg += 15) },
-  { title: "🎯 Ojo Avizor", desc: "+50 Rango de ataque", apply: () => heroes.forEach(h => h.range += 50) }
+// --- SISTEMA ROGUELIKE ---
+const CARD_POOL = [
+  { title: "⚡ Furia Mágica", desc: "+25% Velocidad de ataque general", apply: () => Object.values(HERO_TYPES).forEach(h => h.atkSpeed *= 0.75) },
+  { title: "🗡️ Filo Mitril", desc: "+30% Daño de ataque de Héroes", apply: () => Object.values(HERO_TYPES).forEach(h => h.dmg *= 1.3) },
+  { title: "🏰 Refuerzo de Murallas", desc: "Restaura +300 HP a la Base", apply: () => state.baseHp = Math.min(state.maxBaseHp, state.baseHp + 300) },
+  { title: "💧 Fuente Astral", desc: "Aumenta la velocidad de Maná", apply: () => state.maxMana += 30 }
 ];
 
-function showCardSelection() {
-  inCardSelection = true;
-  const modal = document.getElementById('cards-modal');
-  const container = document.getElementById('cards-list');
+function showRoguelikeCards() {
+  state.paused = true;
+  const modal = document.getElementById('card-modal');
+  const container = document.getElementById('cards-container');
   container.innerHTML = '';
 
-  cardPool.forEach(card => {
-    const el = document.createElement('div');
-    el.className = 'card';
-    el.innerHTML = `<div class="card-title">${card.title}</div><div class="card-desc">${card.desc}</div><button class="card-btn">Elegir</button>`;
-    el.onclick = () => {
+  // Seleccionar 3 cartas aleatorias
+  let shuffled = [...CARD_POOL].sort(() => 0.5 - Math.random()).slice(0, 3);
+
+  shuffled.forEach(card => {
+    let div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `<h3>${card.title}</h3><p>${card.desc}</p><button class="btn-action">Elegir</button>`;
+    div.onclick = () => {
       card.apply();
       modal.style.display = 'none';
-      inCardSelection = false;
-      spawnWave();
+      state.paused = false;
+      state.wave++;
+      state.inWave = true;
+      spawnEnemyWave();
     };
-    container.appendChild(el);
+    container.appendChild(div);
   });
 
   modal.style.display = 'flex';
 }
 
+// --- META-PROGRESO Y TIENDA ---
+function gameOver() {
+  state.paused = true;
+  document.getElementById('meta-modal').style.display = 'flex';
+}
+
+function buyMeta(type) {
+  if (type === 'dmg' && state.gold >= 50) {
+    state.gold -= 50; state.meta.dmgLvl++;
+  } else if (type === 'hp' && state.gold >= 50) {
+    state.gold -= 50; state.meta.hpLvl++;
+    state.maxBaseHp += 200;
+  } else if (type === 'mana' && state.gold >= 75) {
+    state.gold -= 75; state.meta.manaLvl++;
+  }
+  updateMetaUI();
+}
+
+function updateMetaUI() {
+  document.getElementById('lvl-dmg').innerText = `Nivel ${state.meta.dmgLvl} (+${state.meta.dmgLvl * 5}%)`;
+  document.getElementById('lvl-hp').innerText = `Nivel ${state.meta.hpLvl} (+${state.meta.hpLvl * 200} HP)`;
+  document.getElementById('lvl-mana').innerText = `Nivel ${state.meta.manaLvl} (+${state.meta.manaLvl} Mana/s)`;
+}
+
+function restartGame() {
+  state.wave = 1;
+  state.baseHp = state.maxBaseHp;
+  state.mana = 100;
+  heroes = [];
+  enemies = [];
+  projectiles = [];
+  document.getElementById('meta-modal').style.display = 'none';
+  state.paused = false;
+  state.inWave = true;
+  spawnEnemyWave();
+}
+
+// Bucle principal
 function gameLoop() {
   update();
   draw();
   requestAnimationFrame(gameLoop);
 }
 
-spawnWave();
+// Arranque inicial
+spawnEnemyWave();
 gameLoop();
 </script>
 </body>
