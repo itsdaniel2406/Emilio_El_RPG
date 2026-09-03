@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Emolio el RPG v3.0 - Pixel Art Edition</title>
+  <title>Emolio el RPG v3.0 - Pro Edition</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Roboto, sans-serif; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #08090d; color: #fff; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; }
 
     #game-container {
       position: relative;
@@ -15,14 +15,15 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #0d0e15;
+      background: #000;
     }
 
     canvas {
       width: 100%;
       height: 100%;
       object-fit: fill;
-      image-rendering: pixelated; /* Fuerza el renderizado Pixel Art nítido */
+      border: 2px solid #333;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
     }
 
     /* Pantalla de rotación obligatoria */
@@ -56,35 +57,51 @@
       z-index: 10;
     }
     .hud-card {
-      background: rgba(15, 23, 42, 0.9);
-      border: 2px solid #334155;
+      background: rgba(15, 23, 42, 0.85);
+      border: 2px solid #3b82f6;
       padding: 6px 14px;
       border-radius: 8px;
       font-weight: bold;
       font-size: 14px;
       color: #f8fafc;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Marca de agua */
+    #watermark {
+      position: absolute;
+      top: 50px;
+      left: 15px;
+      font-size: 13px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.35);
+      letter-spacing: 1.5px;
+      pointer-events: none;
+      z-index: 10;
+      text-transform: uppercase;
+      text-shadow: 0 0 4px rgba(0,0,0,0.8);
     }
 
     /* Barra Inferior de Héroes */
     #hero-bar {
       position: absolute;
-      bottom: 10px;
+      bottom: 12px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 10px;
-      background: rgba(15, 23, 42, 0.95);
-      padding: 8px 12px;
-      border-radius: 12px;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 8px 16px;
+      border-radius: 14px;
       border: 2px solid #475569;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
       z-index: 10;
     }
     .hero-btn {
       background: #1e293b;
       border: 2px solid #3b82f6;
       color: #fff;
-      padding: 8px 12px;
+      padding: 8px 14px;
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
@@ -93,7 +110,7 @@
       flex-direction: column;
       align-items: center;
       touch-action: manipulation;
-      transition: transform 0.1s;
+      transition: all 0.15s ease;
     }
     .hero-btn:active { transform: scale(0.95); }
     .hero-btn span { font-size: 10px; color: #fbbf24; margin-top: 2px; }
@@ -110,7 +127,7 @@
       justify-content: center;
       z-index: 20;
     }
-    .modal h2 { font-size: 26px; color: #fbbf24; margin-bottom: 20px; text-shadow: 2px 2px #000; }
+    .modal h2 { font-size: 26px; color: #fbbf24; margin-bottom: 20px; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
     .cards-wrapper { display: flex; gap: 15px; }
     .card-item {
       width: 160px;
@@ -125,6 +142,7 @@
       align-items: center;
       text-align: center;
       cursor: pointer;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
     }
     .card-item h3 { color: #fbbf24; font-size: 15px; }
     .card-item p { font-size: 12px; color: #cbd5e1; }
@@ -139,7 +157,7 @@
       background: rgba(0,0,0,0.7);
       border: 1px solid #64748b;
       color: white;
-      padding: 4px 8px;
+      padding: 5px 10px;
       border-radius: 6px;
       font-size: 12px;
       cursor: pointer;
@@ -155,6 +173,8 @@
 
   <div id="game-container">
     <button id="fs-btn" onclick="goFullscreen()"> Pantalla Completa</button>
+    <div id="watermark">Creado por Dani v2</div>
+    
     <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
     <div id="hud">
@@ -199,15 +219,16 @@ let game = {
 };
 
 const HERO_TYPES = {
-  knight: { name: 'Guerrero', hp: 250, maxHp: 250, dmg: 20, range: 50, speed: 1.2, atkSpeed: 45, cost: 30, sprite: 'knight' },
-  archer: { name: 'Arquera', hp: 120, maxHp: 120, dmg: 16, range: 350, speed: 1.0, atkSpeed: 28, cost: 40, sprite: 'archer' },
-  mage:   { name: 'Mago', hp: 100, maxHp: 100, dmg: 40, range: 250, speed: 0.8, atkSpeed: 60, cost: 60, sprite: 'mage' },
-  paladin:{ name: 'Paladín', hp: 500, maxHp: 500, dmg: 12, range: 50, speed: 0.6, atkSpeed: 55, cost: 80, sprite: 'paladin' }
+  knight: { name: 'Guerrero', hp: 250, maxHp: 250, dmg: 20, range: 50, speed: 1.2, atkSpeed: 45, cost: 30, color: '#00ffff', glow: '#005580' },
+  archer: { name: 'Arquera', hp: 120, maxHp: 120, dmg: 16, range: 350, speed: 1.0, atkSpeed: 28, cost: 40, color: '#10b981', glow: '#047857' },
+  mage:   { name: 'Mago', hp: 100, maxHp: 100, dmg: 40, range: 250, speed: 0.8, atkSpeed: 60, cost: 60, color: '#a855f7', glow: '#6b21a8' },
+  paladin:{ name: 'Paladín', hp: 500, maxHp: 500, dmg: 12, range: 50, speed: 0.6, atkSpeed: 55, cost: 80, color: '#eab308', glow: '#854d0e' }
 };
 
 let heroes = [];
 let enemies = [];
 let projectiles = [];
+let particles = [];
 
 function startWave() {
   const isBoss = game.wave % 5 === 0;
@@ -216,7 +237,7 @@ function startWave() {
   for (let i = 0; i < count; i++) {
     enemies.push({
       x: 1300 + (i * (isBoss ? 0 : 70)),
-      y: 350 + (Math.random() * 180 - 90),
+      y: 360 + (Math.random() * 200 - 100),
       hp: isBoss ? 1000 + game.wave * 400 : 60 + game.wave * 25,
       maxHp: isBoss ? 1000 + game.wave * 400 : 60 + game.wave * 25,
       dmg: isBoss ? 60 : 10 + game.wave * 3,
@@ -225,7 +246,7 @@ function startWave() {
       atkSpeed: isBoss ? 60 : 45,
       timer: 0,
       isBoss: isBoss,
-      animTimer: Math.random() * 10
+      glow: isBoss ? '#ff0044' : '#ef4444'
     });
   }
 }
@@ -236,10 +257,10 @@ function spawnHero(type) {
     game.mana -= t.cost;
     heroes.push({
       ...t,
-      x: 140 + Math.random() * 30,
-      y: 320 + (Math.random() * 180 - 90),
+      x: 150 + Math.random() * 30,
+      y: 360 + (Math.random() * 200 - 100),
       timer: 0,
-      animTimer: 0
+      typeKey: type
     });
   }
 }
@@ -251,7 +272,6 @@ function update() {
 
   // Lógica de Héroes
   heroes.forEach((h, hIdx) => {
-    h.animTimer += 0.1;
     let target = null;
     let minDist = Infinity;
     enemies.forEach(e => {
@@ -263,13 +283,7 @@ function update() {
       h.timer++;
       if (h.timer >= h.atkSpeed) {
         h.timer = 0;
-        projectiles.push({ 
-          x: h.x, y: h.y - 10, 
-          target: target, 
-          dmg: h.dmg, 
-          speed: 9, 
-          type: h.sprite 
-        });
+        projectiles.push({ x: h.x, y: h.y - 20, target: target, dmg: h.dmg, speed: 10, color: h.color });
       }
     } else {
       h.x += h.speed;
@@ -280,7 +294,6 @@ function update() {
 
   // Lógica de Enemigos
   enemies.forEach((e, eIdx) => {
-    e.animTimer += 0.1;
     let target = null;
     let minDist = Infinity;
     heroes.forEach(h => {
@@ -302,6 +315,16 @@ function update() {
 
     if (e.hp <= 0) {
       game.gold += e.isBoss ? 120 : 15;
+      // Generar partículas de muerte
+      for (let i = 0; i < 12; i++) {
+        particles.push({
+          x: e.x, y: e.y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 0.5) * 6,
+          color: e.glow,
+          life: 25
+        });
+      }
       enemies.splice(eIdx, 1);
     }
   });
@@ -309,16 +332,24 @@ function update() {
   // Lógica de Proyectiles
   projectiles.forEach((p, pIdx) => {
     let dx = p.target.x - p.x;
-    let dy = (p.target.y - 10) - p.y;
+    let dy = (p.target.y - 20) - p.y;
     let dist = Math.hypot(dx, dy);
 
-    if (dist < 12 || p.target.hp <= 0) {
+    if (dist < 15 || p.target.hp <= 0) {
       if (p.target.hp > 0) p.target.hp -= p.dmg;
       projectiles.splice(pIdx, 1);
     } else {
       p.x += (dx / dist) * p.speed;
       p.y += (dy / dist) * p.speed;
     }
+  });
+
+  // Partículas
+  particles.forEach((pt, ptIdx) => {
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    pt.life--;
+    if (pt.life <= 0) particles.splice(ptIdx, 1);
   });
 
   if (enemies.length === 0 && game.inWave) {
@@ -338,133 +369,118 @@ function update() {
   document.getElementById('b-paladin').disabled = game.mana < HERO_TYPES.paladin.cost;
 }
 
-// --- RENDERIZADO PIXEL ART PROCEDURAL ---
-
-function drawPixelSprite(type, x, y, anim, isBoss = false) {
-  ctx.save();
-  ctx.translate(x, y + Math.sin(anim) * 2); // Efecto sutil de respiración/caminar
-  let s = isBoss ? 2.2 : 1.3;
-  ctx.scale(s, s);
-
-  if (type === 'knight') {
-    // Casco y Armadura Azul
-    ctx.fillStyle = '#64748b'; ctx.fillRect(-8, -20, 16, 10);
-    ctx.fillStyle = '#3b82f6'; ctx.fillRect(-7, -10, 14, 12);
-    ctx.fillStyle = '#f8fafc'; ctx.fillRect(-3, -17, 8, 3); // Visor
-    ctx.fillStyle = '#94a3b8'; ctx.fillRect(6, -12, 4, 14); // Espada
-  } 
-  else if (type === 'archer') {
-    // Túnica Verde y Arco
-    ctx.fillStyle = '#15803d'; ctx.fillRect(-6, -18, 12, 18);
-    ctx.fillStyle = '#fde047'; ctx.fillRect(-5, -22, 10, 6); // Pelo
-    ctx.fillStyle = '#78350f'; ctx.fillRect(4, -16, 2, 14); // Arco
-  } 
-  else if (type === 'mage') {
-    // Túnica Púrpura y Sombrero
-    ctx.fillStyle = '#7e22ce'; ctx.fillRect(-7, -16, 14, 16);
-    ctx.fillStyle = '#a855f7'; ctx.fillRect(-9, -24, 18, 8); // Sombrero
-    ctx.fillStyle = '#fbbf24'; ctx.fillRect(5, -18, 3, 18); // Báculo
-  } 
-  else if (type === 'paladin') {
-    // Armadura Dorada y Escudo
-    ctx.fillStyle = '#eab308'; ctx.fillRect(-9, -22, 18, 22);
-    ctx.fillStyle = '#fef08a'; ctx.fillRect(-11, -14, 6, 12); // Escudo
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(-4, -18, 8, 4);
-  } 
-  else if (type === 'enemy') {
-    // Orco/Monstruo Rojo-Gris
-    ctx.fillStyle = isBoss ? '#991b1b' : '#475569';
-    ctx.fillRect(-8, -18, 16, 18);
-    ctx.fillStyle = '#ef4444'; ctx.fillRect(-5, -14, 10, 4); // Ojos
-    ctx.fillStyle = '#1e293b'; ctx.fillRect(-10, -8, 4, 8); // Garrotes
-  }
-
-  ctx.restore();
-}
+// --- RENDERIZADO AVANZADO CON EFECTOS VISUALES EN CAPAS ---
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // 1. Fondo / Cielo Nocturno
-  let sky = ctx.createLinearGradient(0, 0, 0, 250);
-  sky.addColorStop(0, '#020617');
-  sky.addColorStop(1, '#0f172a');
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, canvas.width, 250);
+  // CAPA 1: Fondo Gradiente de atmósfera
+  let bgGradient = ctx.createLinearGradient(0, 0, 0, 720);
+  bgGradient.addColorStop(0, '#1a0b2e'); // Púrpura oscuro
+  bgGradient.addColorStop(0.6, '#4c2a5c');
+  bgGradient.addColorStop(1, '#110519');
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Montañas Pixeladas de fondo
-  ctx.fillStyle = '#1e293b';
-  for(let i = 0; i < canvas.width; i += 80) {
+  // CAPA 2: Suelo detallado con volumen y brillo
+  let floorGradient = ctx.createLinearGradient(0, 260, 0, 720);
+  floorGradient.addColorStop(0, '#2e7d32');
+  floorGradient.addColorStop(1, '#0f3811');
+  ctx.fillStyle = floorGradient;
+  ctx.fillRect(0, 260, canvas.width, 460);
+
+  // Línea brillante en el borde del campo
+  ctx.strokeStyle = '#4caf50';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, 260);
+  ctx.lineTo(canvas.width, 260);
+  ctx.stroke();
+
+  // CAPA 3: Muralla / Base Fortaleza
+  let wallGrad = ctx.createLinearGradient(0, 0, 150, 0);
+  wallGrad.addColorStop(0, '#1e293b');
+  wallGrad.addColorStop(1, '#475569');
+  ctx.fillStyle = wallGrad;
+  ctx.fillRect(0, 120, 140, 480);
+
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(0, 120, 140, 480);
+
+  // CAPA 4: Sombras Proyectadas en el Suelo
+  heroes.concat(enemies).forEach(unit => {
+    let r = unit.isBoss ? 45 : 20;
     ctx.beginPath();
-    ctx.moveTo(i, 250);
-    ctx.lineTo(i + 40, 160);
-    ctx.lineTo(i + 80, 250);
+    ctx.ellipse(unit.x, unit.y + 10, r, r / 3, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
     ctx.fill();
-  }
+  });
 
-  // 2. Campo de Batalla (Suelo de Piedra y Hierba Pixel)
-  ctx.fillStyle = '#15803d';
-  ctx.fillRect(0, 240, canvas.width, 15); // Borde de Hierba
-  ctx.fillStyle = '#334155';
-  ctx.fillRect(0, 255, canvas.width, 260); // Camino de Piedra
-
-  // Textura de Adoquines
-  ctx.fillStyle = '#1e293b';
-  for (let x = 0; x < canvas.width; x += 40) {
-    for (let y = 260; y < 510; y += 30) {
-      if ((x + y) % 20 === 0) ctx.fillRect(x, y, 36, 26);
-    }
-  }
-
-  // 3. Muralla / Castillo Base
-  ctx.fillStyle = '#475569';
-  ctx.fillRect(0, 150, 140, 380);
-  ctx.fillStyle = '#0f172a';
-  // Detalles de Ladrillo
-  for (let y = 160; y < 520; y += 25) {
-    ctx.fillRect(0, y, 140, 2);
-  }
-  // Almenas Superiores
-  ctx.fillStyle = '#334155';
-  for (let i = 0; i < 140; i += 28) {
-    ctx.fillRect(i, 130, 16, 20);
-  }
-
-  // 4. Dibujar Héroes (Pixel Art + Barras de Vida)
+  // CAPA 5: Héroes con Iluminación Dinámica Radial y Auras
   heroes.forEach(h => {
-    drawPixelSprite(h.sprite, h.x, h.y, h.animTimer);
+    ctx.save();
+    ctx.shadowColor = h.color;
+    ctx.shadowBlur = 18;
 
-    // Barra de Vida Retro
+    let grad = ctx.createRadialGradient(h.x - 5, h.y - 25, 2, h.x, h.y - 15, 25);
+    grad.addColorStop(0, h.color);
+    grad.addColorStop(0.7, h.glow);
+    grad.addColorStop(1, '#000');
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(h.x - 16, h.y - 45, 32, 50); // Cuerpo estilizado
+    ctx.restore();
+
+    // Barra de Vida
     ctx.fillStyle = '#000';
-    ctx.fillRect(h.x - 14, h.y - 32, 28, 5);
-    ctx.fillStyle = '#22c55e';
-    ctx.fillRect(h.x - 13, h.y - 31, (h.hp / h.maxHp) * 26, 3);
+    ctx.fillRect(h.x - 16, h.y - 58, 32, 5);
+    ctx.fillStyle = '#00ffff';
+    ctx.fillRect(h.x - 15, h.y - 57, (h.hp / h.maxHp) * 30, 3);
   });
 
-  // 5. Dibujar Enemigos
+  // CAPA 6: Enemigos y Jefes con Aura Amenazante
   enemies.forEach(e => {
-    drawPixelSprite('enemy', e.x, e.y, e.animTimer, e.isBoss);
+    ctx.save();
+    ctx.shadowColor = e.glow;
+    ctx.shadowBlur = e.isBoss ? 30 : 18;
 
-    // Barra de Vida Enemigo
-    let w = e.isBoss ? 50 : 28;
+    let sizeW = e.isBoss ? 60 : 36;
+    let sizeH = e.isBoss ? 80 : 50;
+
+    let grad = ctx.createRadialGradient(e.x - 5, e.y - 25, 3, e.x, e.y - 20, sizeW);
+    grad.addColorStop(0, '#ff4d4d');
+    grad.addColorStop(0.8, '#4a0000');
+    grad.addColorStop(1, '#110000');
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(e.x - sizeW/2, e.y - sizeH + 5, sizeW, sizeH);
+    ctx.restore();
+
+    // Barra de Vida
+    let bWidth = sizeW + 10;
     ctx.fillStyle = '#000';
-    ctx.fillRect(e.x - w/2, e.y - (e.isBoss ? 50 : 32), w, 6);
-    ctx.fillStyle = '#ef4444';
-    ctx.fillRect(e.x - (w/2 - 1), e.y - (e.isBoss ? 49 : 31), (e.hp / e.maxHp) * (w - 2), 4);
+    ctx.fillRect(e.x - bWidth/2, e.y - sizeH - 12, bWidth, 6);
+    ctx.fillStyle = '#ff0044';
+    ctx.fillRect(e.x - bWidth/2 + 1, e.y - sizeH - 11, (e.hp / e.maxHp) * (bWidth - 2), 4);
   });
 
-  // 6. Proyectiles y Efectos
+  // CAPA 7: Proyectiles con Resplandor Vibrante
   projectiles.forEach(p => {
-    if (p.type === 'mage') {
-      ctx.fillStyle = '#a855f7'; // Orbe de fuego místico
-      ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2); ctx.fill();
-    } else if (p.type === 'archer') {
-      ctx.fillStyle = '#fde047'; // Flecha dorada
-      ctx.fillRect(p.x, p.y, 10, 2);
-    } else {
-      ctx.fillStyle = '#3b82f6'; // Estallido de corte
-      ctx.fillRect(p.x, p.y, 6, 6);
-    }
+    ctx.save();
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 15;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // CAPA 8: Partículas
+  particles.forEach(pt => {
+    ctx.fillStyle = pt.color;
+    ctx.fillRect(pt.x, pt.y, 4, 4);
   });
 }
 
