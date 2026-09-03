@@ -63,4 +63,131 @@ function spawnWave() {
       x: 850 + (i * 45),
       y: 120 + Math.random() * 220,
       hp: 30 + (wave * 15),
-      maxHp: 30 + (wave
+      maxHp: 30 + (wave * 15),
+      speed: 1 + Math.random() * 0.5,
+      color: '#2ecc71'
+    });
+  }
+}
+
+function update() {
+  if (inCardSelection) return;
+
+  // Lógica de Héroes
+  heroes.forEach(h => {
+    h.timer++;
+    if (h.timer >= h.atkSpeed) {
+      // Buscar enemigo cercano
+      let target = enemies.find(e => Math.hypot(e.x - h.x, e.y - h.y) < h.range);
+      if (target) {
+        projectiles.push({ x: h.x, y: h.y, target: target, dmg: h.dmg, speed: 7 });
+        h.timer = 0;
+      }
+    }
+  });
+
+  // Lógica de Proyectiles
+  projectiles.forEach((p, index) => {
+    let dx = p.target.x - p.x;
+    let dy = p.target.y - p.y;
+    let dist = Math.hypot(dx, dy);
+    
+    if (dist < 10 || p.target.hp <= 0) {
+      if (p.target.hp > 0) p.target.hp -= p.dmg;
+      projectiles.splice(index, 1);
+    } else {
+      p.x += (dx / dist) * p.speed;
+      p.y += (dy / dist) * p.speed;
+    }
+  });
+
+  // Lógica de Enemigos
+  enemies.forEach((e, index) => {
+    e.x -= e.speed;
+    if (e.hp <= 0) {
+      gold += 10;
+      enemies.splice(index, 1);
+    }
+  });
+
+  // Siguiente Oleada / Selección de Cartas
+  if (enemies.length === 0) {
+    wave++;
+    showCardSelection();
+  }
+
+  document.getElementById('wave-txt').innerText = `Oleada: ${wave}`;
+  document.getElementById('gold-txt').innerText = `Oro: ${gold} 🪙`;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Dibujar Héroes
+  heroes.forEach(h => {
+    ctx.fillStyle = h.color;
+    ctx.beginPath();
+    ctx.arc(h.x, h.y, 20, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Dibujar Enemigos
+  enemies.forEach(e => {
+    ctx.fillStyle = e.color;
+    ctx.fillRect(e.x - 15, e.y - 15, 30, 30);
+    // Barra de Vida
+    ctx.fillStyle = 'red';
+    ctx.fillRect(e.x - 15, e.y - 25, 30, 5);
+    ctx.fillStyle = 'green';
+    ctx.fillRect(e.x - 15, e.y - 25, (e.hp / e.maxHp) * 30, 5);
+  });
+
+  // Dibujar Proyectiles
+  ctx.fillStyle = '#f1c40f';
+  projectiles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// Sistema de Mejores estilo Roguelike
+const cardPool = [
+  { title: "⚡ Ataque Furia", desc: "+30% Velocidad de Ataque", apply: () => heroes.forEach(h => h.atkSpeed *= 0.7) },
+  { title: "🗡️ Filo Afilado", desc: "+15 de Daño base", apply: () => heroes.forEach(h => h.dmg += 15) },
+  { title: "🎯 Ojo Avizor", desc: "+50 Rango de ataque", apply: () => heroes.forEach(h => h.range += 50) }
+];
+
+function showCardSelection() {
+  inCardSelection = true;
+  const modal = document.getElementById('cards-modal');
+  const container = document.getElementById('cards-list');
+  container.innerHTML = '';
+
+  cardPool.forEach(card => {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `<div class="card-title">${card.title}</div><div class="card-desc">${card.desc}</div><button class="card-btn">Elegir</button>`;
+    el.onclick = () => {
+      card.apply();
+      modal.style.display = 'none';
+      inCardSelection = false;
+      spawnWave();
+    };
+    container.appendChild(el);
+  });
+
+  modal.style.display = 'flex';
+}
+
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+spawnWave();
+gameLoop();
+</script>
+</body>
+</html>
