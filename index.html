@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Emolio el RPG v3.0 - Pro Edition</title>
+  <title>Emolio el RPG v5.0 - Save & Load Edition</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Roboto, sans-serif; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; }
@@ -26,7 +26,7 @@
       box-shadow: 0 0 20px rgba(0,0,0,0.8);
     }
 
-    /* Pantalla de rotación obligatoria */
+    /* Pantalla de rotación */
     #rotate-screen {
       display: none;
       position: fixed;
@@ -74,7 +74,7 @@
       left: 15px;
       font-size: 13px;
       font-weight: 800;
-      color: rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.4);
       letter-spacing: 1.5px;
       pointer-events: none;
       z-index: 10;
@@ -148,19 +148,46 @@
     .card-item p { font-size: 12px; color: #cbd5e1; }
     .btn-select { background: #f59e0b; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; color: #000; }
 
-    /* Botón Pantalla Completa */
-    #fs-btn {
+    /* Barra Superior de Botones de Control */
+    #top-controls {
       position: absolute;
       top: 10px;
       right: 10px;
+      display: flex;
+      gap: 8px;
       z-index: 15;
-      background: rgba(0,0,0,0.7);
+    }
+    .top-btn {
+      background: rgba(15, 23, 42, 0.85);
       border: 1px solid #64748b;
       color: white;
-      padding: 5px 10px;
+      padding: 6px 10px;
       border-radius: 6px;
       font-size: 12px;
+      font-weight: bold;
       cursor: pointer;
+      transition: background 0.2s;
+    }
+    .top-btn:active { transform: scale(0.95); }
+    #save-btn { border-color: #22c55e; color: #4ade80; }
+    #load-btn { border-color: #3b82f6; color: #60a5fa; }
+    #reload-btn { border-color: #f59e0b; color: #fbbf24; }
+
+    /* Notificación emergente Toast */
+    #toast {
+      position: absolute;
+      top: 60px;
+      right: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 2px solid #22c55e;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      display: none;
+      z-index: 25;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
   </style>
 </head>
@@ -172,7 +199,14 @@
   </div>
 
   <div id="game-container">
-    <button id="fs-btn" onclick="goFullscreen()"> Pantalla Completa</button>
+    <div id="top-controls">
+      <button class="top-btn" id="save-btn" onclick="saveGame()">💾 Guardar</button>
+      <button class="top-btn" id="load-btn" onclick="loadGame()">📂 Cargar</button>
+      <button class="top-btn" id="reload-btn" onclick="location.reload(true)">🔄 Recargar</button>
+      <button class="top-btn" id="fs-btn" onclick="goFullscreen()">⛶ Fullscreen</button>
+    </div>
+
+    <div id="toast"></div>
     <div id="watermark">Creado por Dani v2</div>
     
     <canvas id="gameCanvas" width="1280" height="720"></canvas>
@@ -207,6 +241,14 @@ function goFullscreen() {
   }
 }
 
+function showToast(msg, color = '#22c55e') {
+  const toast = document.getElementById('toast');
+  toast.style.borderColor = color;
+  toast.innerText = msg;
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 2500);
+}
+
 let game = {
   gold: 0,
   mana: 100,
@@ -219,16 +261,51 @@ let game = {
 };
 
 const HERO_TYPES = {
-  knight: { name: 'Guerrero', hp: 250, maxHp: 250, dmg: 20, range: 50, speed: 1.2, atkSpeed: 45, cost: 30, color: '#00ffff', glow: '#005580' },
-  archer: { name: 'Arquera', hp: 120, maxHp: 120, dmg: 16, range: 350, speed: 1.0, atkSpeed: 28, cost: 40, color: '#10b981', glow: '#047857' },
-  mage:   { name: 'Mago', hp: 100, maxHp: 100, dmg: 40, range: 250, speed: 0.8, atkSpeed: 60, cost: 60, color: '#a855f7', glow: '#6b21a8' },
-  paladin:{ name: 'Paladín', hp: 500, maxHp: 500, dmg: 12, range: 50, speed: 0.6, atkSpeed: 55, cost: 80, color: '#eab308', glow: '#854d0e' }
+  knight: { name: 'Guerrero', hp: 250, maxHp: 250, dmg: 20, range: 50, speed: 1.2, atkSpeed: 45, cost: 30, type: 'knight' },
+  archer: { name: 'Arquera', hp: 120, maxHp: 120, dmg: 16, range: 350, speed: 1.0, atkSpeed: 28, cost: 40, type: 'archer' },
+  mage:   { name: 'Mago', hp: 100, maxHp: 100, dmg: 40, range: 250, speed: 0.8, atkSpeed: 60, cost: 60, type: 'mage' },
+  paladin:{ name: 'Paladín', hp: 500, maxHp: 500, dmg: 12, range: 50, speed: 0.6, atkSpeed: 55, cost: 80, type: 'paladin' }
 };
 
 let heroes = [];
 let enemies = [];
 let projectiles = [];
 let particles = [];
+
+// --- SISTEMA DE GUARDADO Y CARGA ---
+function saveGame() {
+  const saveData = {
+    game: game,
+    heroTypes: HERO_TYPES
+  };
+  localStorage.setItem('emolio_rpg_save', JSON.stringify(saveData));
+  showToast('💾 Partida Guardada');
+}
+
+function loadGame() {
+  const saved = localStorage.getItem('emolio_rpg_save');
+  if (!saved) {
+    showToast('⚠️ No hay partida guardada', '#ef4444');
+    return;
+  }
+  
+  const parsed = JSON.parse(saved);
+  game = parsed.game;
+  Object.assign(HERO_TYPES, parsed.heroTypes);
+
+  // Limpiar mapa al cargar
+  heroes = [];
+  enemies = [];
+  projectiles = [];
+  particles = [];
+  
+  game.inWave = true;
+  game.paused = false;
+  document.getElementById('card-modal').style.display = 'none';
+  
+  startWave();
+  showToast('📂 Partida Cargada', '#3b82f6');
+}
 
 function startWave() {
   const isBoss = game.wave % 5 === 0;
@@ -237,7 +314,7 @@ function startWave() {
   for (let i = 0; i < count; i++) {
     enemies.push({
       x: 1300 + (i * (isBoss ? 0 : 70)),
-      y: 360 + (Math.random() * 200 - 100),
+      y: 380 + (Math.random() * 180 - 90),
       hp: isBoss ? 1000 + game.wave * 400 : 60 + game.wave * 25,
       maxHp: isBoss ? 1000 + game.wave * 400 : 60 + game.wave * 25,
       dmg: isBoss ? 60 : 10 + game.wave * 3,
@@ -246,21 +323,21 @@ function startWave() {
       atkSpeed: isBoss ? 60 : 45,
       timer: 0,
       isBoss: isBoss,
-      glow: isBoss ? '#ff0044' : '#ef4444'
+      anim: Math.random() * 10
     });
   }
 }
 
-function spawnHero(type) {
-  const t = HERO_TYPES[type];
+function spawnHero(typeKey) {
+  const t = HERO_TYPES[typeKey];
   if (game.mana >= t.cost) {
     game.mana -= t.cost;
     heroes.push({
       ...t,
-      x: 150 + Math.random() * 30,
-      y: 360 + (Math.random() * 200 - 100),
+      x: 160 + Math.random() * 30,
+      y: 380 + (Math.random() * 180 - 90),
       timer: 0,
-      typeKey: type
+      anim: Math.random() * 10
     });
   }
 }
@@ -272,6 +349,7 @@ function update() {
 
   // Lógica de Héroes
   heroes.forEach((h, hIdx) => {
+    h.anim += 0.1;
     let target = null;
     let minDist = Infinity;
     enemies.forEach(e => {
@@ -283,7 +361,7 @@ function update() {
       h.timer++;
       if (h.timer >= h.atkSpeed) {
         h.timer = 0;
-        projectiles.push({ x: h.x, y: h.y - 20, target: target, dmg: h.dmg, speed: 10, color: h.color });
+        projectiles.push({ x: h.x + 10, y: h.y - 30, target: target, dmg: h.dmg, speed: 10, type: h.type });
       }
     } else {
       h.x += h.speed;
@@ -294,6 +372,7 @@ function update() {
 
   // Lógica de Enemigos
   enemies.forEach((e, eIdx) => {
+    e.anim += 0.1;
     let target = null;
     let minDist = Infinity;
     heroes.forEach(h => {
@@ -315,24 +394,23 @@ function update() {
 
     if (e.hp <= 0) {
       game.gold += e.isBoss ? 120 : 15;
-      // Generar partículas de muerte
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 10; i++) {
         particles.push({
-          x: e.x, y: e.y,
+          x: e.x, y: e.y - 20,
           vx: (Math.random() - 0.5) * 6,
           vy: (Math.random() - 0.5) * 6,
-          color: e.glow,
-          life: 25
+          color: e.isBoss ? '#ef4444' : '#8b5cf6',
+          life: 20
         });
       }
       enemies.splice(eIdx, 1);
     }
   });
 
-  // Lógica de Proyectiles
+  // Proyectiles
   projectiles.forEach((p, pIdx) => {
     let dx = p.target.x - p.x;
-    let dy = (p.target.y - 20) - p.y;
+    let dy = (p.target.y - 30) - p.y;
     let dist = Math.hypot(dx, dy);
 
     if (dist < 15 || p.target.hp <= 0) {
@@ -369,115 +447,149 @@ function update() {
   document.getElementById('b-paladin').disabled = game.mana < HERO_TYPES.paladin.cost;
 }
 
-// --- RENDERIZADO AVANZADO CON EFECTOS VISUALES EN CAPAS ---
+// --- RENDERING ---
+function drawTree(x, y, scale) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = '#3f2314'; ctx.fillRect(-8, -40, 16, 40);
+  ctx.fillStyle = '#15803d';
+  ctx.beginPath(); ctx.arc(0, -50, 25, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-15, -40, 20, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(15, -40, 20, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawHeroModel(type, x, y, anim) {
+  ctx.save();
+  ctx.translate(x, y + Math.sin(anim) * 3);
+
+  if (type === 'knight') {
+    ctx.fillStyle = '#94a3b8'; ctx.beginPath(); ctx.arc(0, -45, 10, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#38bdf8'; ctx.fillRect(-6, -47, 12, 3);
+    ctx.fillStyle = '#0284c7'; ctx.fillRect(-10, -35, 20, 22);
+    ctx.fillStyle = '#16a34a'; ctx.fillRect(-12, -33, 4, 25);
+    ctx.fillStyle = '#cbd5e1'; ctx.fillRect(10, -50, 6, 35);
+    ctx.fillStyle = '#38bdf8'; ctx.fillRect(8, -25, 10, 4);
+  } else if (type === 'archer') {
+    ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(0, -43, 9, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#15803d'; ctx.fillRect(-8, -34, 16, 20);
+    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(10, -25, 18, -Math.PI/2, Math.PI/2); ctx.stroke();
+  } else if (type === 'mage') {
+    ctx.fillStyle = '#7e22ce';
+    ctx.beginPath(); ctx.moveTo(-14, -45); ctx.lineTo(14, -45); ctx.lineTo(0, -68); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#6b21a8'; ctx.fillRect(-10, -45, 20, 32);
+    ctx.fillStyle = '#78350f'; ctx.fillRect(10, -50, 4, 38);
+    ctx.fillStyle = '#c084fc'; ctx.shadowColor = '#c084fc'; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.arc(12, -52, 7, 0, Math.PI*2); ctx.fill();
+  } else if (type === 'paladin') {
+    ctx.fillStyle = '#f59e0b'; ctx.fillRect(-14, -42, 28, 28);
+    ctx.fillStyle = '#fef08a'; ctx.fillRect(-8, -52, 16, 12);
+    ctx.fillStyle = '#eab308'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+    ctx.fillRect(-20, -38, 10, 26); ctx.strokeRect(-20, -38, 10, 26);
+  }
+
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-6, -13, 5, 13);
+  ctx.fillRect(1, -13, 5, 13);
+  ctx.restore();
+}
+
+function drawEnemyModel(x, y, anim, isBoss) {
+  ctx.save();
+  ctx.translate(x, y + Math.sin(anim) * 4);
+  let s = isBoss ? 2.0 : 1.1;
+  ctx.scale(s, s);
+
+  ctx.fillStyle = isBoss ? '#450a0a' : '#334155'; ctx.fillRect(-12, -38, 24, 26);
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath(); ctx.moveTo(-8, -48); ctx.lineTo(-14, -60); ctx.lineTo(-4, -50); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(8, -48); ctx.lineTo(14, -60); ctx.lineTo(4, -50); ctx.fill();
+  ctx.fillStyle = isBoss ? '#7f1d1d' : '#1e293b'; ctx.fillRect(-9, -50, 18, 14);
+  ctx.fillStyle = '#ef4444'; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 8;
+  ctx.fillRect(-6, -46, 4, 3); ctx.fillRect(2, -46, 4, 3);
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(-18, -32, 6, 20);
+  ctx.fillRect(-8, -12, 6, 12); ctx.fillRect(2, -12, 6, 12);
+  ctx.restore();
+}
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // CAPA 1: Fondo Gradiente de atmósfera
   let bgGradient = ctx.createLinearGradient(0, 0, 0, 720);
-  bgGradient.addColorStop(0, '#1a0b2e'); // Púrpura oscuro
-  bgGradient.addColorStop(0.6, '#4c2a5c');
-  bgGradient.addColorStop(1, '#110519');
+  bgGradient.addColorStop(0, '#090d16');
+  bgGradient.addColorStop(0.4, '#1e112a');
+  bgGradient.addColorStop(1, '#0a0512');
   ctx.fillStyle = bgGradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // CAPA 2: Suelo detallado con volumen y brillo
-  let floorGradient = ctx.createLinearGradient(0, 260, 0, 720);
-  floorGradient.addColorStop(0, '#2e7d32');
-  floorGradient.addColorStop(1, '#0f3811');
-  ctx.fillStyle = floorGradient;
-  ctx.fillRect(0, 260, canvas.width, 460);
+  drawTree(220, 270, 0.9);
+  drawTree(380, 265, 0.7);
+  drawTree(750, 270, 0.85);
+  drawTree(920, 260, 0.75);
 
-  // Línea brillante en el borde del campo
-  ctx.strokeStyle = '#4caf50';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(0, 260);
-  ctx.lineTo(canvas.width, 260);
-  ctx.stroke();
+  let floorGrad = ctx.createLinearGradient(0, 270, 0, 720);
+  floorGrad.addColorStop(0, '#166534');
+  floorGrad.addColorStop(0.15, '#14532d');
+  floorGrad.addColorStop(1, '#052e16');
+  ctx.fillStyle = floorGrad;
+  ctx.fillRect(0, 270, canvas.width, 450);
 
-  // CAPA 3: Muralla / Base Fortaleza
-  let wallGrad = ctx.createLinearGradient(0, 0, 150, 0);
-  wallGrad.addColorStop(0, '#1e293b');
-  wallGrad.addColorStop(1, '#475569');
-  ctx.fillStyle = wallGrad;
-  ctx.fillRect(0, 120, 140, 480);
+  ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, 270); ctx.lineTo(canvas.width, 270); ctx.stroke();
 
-  ctx.strokeStyle = '#64748b';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(0, 120, 140, 480);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+  for (let x = 180; x < canvas.width; x += 60) {
+    for (let y = 300; y < 700; y += 45) {
+      ctx.fillRect(x + (y % 2 === 0 ? 15 : 0), y, 40, 20);
+    }
+  }
 
-  // CAPA 4: Sombras Proyectadas en el Suelo
-  heroes.concat(enemies).forEach(unit => {
-    let r = unit.isBoss ? 45 : 20;
+  let castleGrad = ctx.createLinearGradient(0, 0, 150, 0);
+  castleGrad.addColorStop(0, '#0f172a');
+  castleGrad.addColorStop(1, '#334155');
+  ctx.fillStyle = castleGrad;
+  ctx.fillRect(0, 130, 150, 480);
+
+  ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
+  for (let y = 140; y < 600; y += 30) {
+    ctx.strokeRect(0, y, 150, 30);
+  }
+
+  heroes.concat(enemies).forEach(u => {
+    let rx = u.isBoss ? 40 : 18;
     ctx.beginPath();
-    ctx.ellipse(unit.x, unit.y + 10, r, r / 3, 0, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.ellipse(u.x, u.y, rx, rx / 2.5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.fill();
   });
 
-  // CAPA 5: Héroes con Iluminación Dinámica Radial y Auras
   heroes.forEach(h => {
-    ctx.save();
-    ctx.shadowColor = h.color;
-    ctx.shadowBlur = 18;
-
-    let grad = ctx.createRadialGradient(h.x - 5, h.y - 25, 2, h.x, h.y - 15, 25);
-    grad.addColorStop(0, h.color);
-    grad.addColorStop(0.7, h.glow);
-    grad.addColorStop(1, '#000');
-
-    ctx.fillStyle = grad;
-    ctx.fillRect(h.x - 16, h.y - 45, 32, 50); // Cuerpo estilizado
-    ctx.restore();
-
-    // Barra de Vida
-    ctx.fillStyle = '#000';
-    ctx.fillRect(h.x - 16, h.y - 58, 32, 5);
-    ctx.fillStyle = '#00ffff';
-    ctx.fillRect(h.x - 15, h.y - 57, (h.hp / h.maxHp) * 30, 3);
+    drawHeroModel(h.type, h.x, h.y, h.anim);
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x - 16, h.y - 68, 32, 5);
+    ctx.fillStyle = '#38bdf8'; ctx.fillRect(h.x - 15, h.y - 67, (h.hp / h.maxHp) * 30, 3);
   });
 
-  // CAPA 6: Enemigos y Jefes con Aura Amenazante
   enemies.forEach(e => {
-    ctx.save();
-    ctx.shadowColor = e.glow;
-    ctx.shadowBlur = e.isBoss ? 30 : 18;
-
-    let sizeW = e.isBoss ? 60 : 36;
-    let sizeH = e.isBoss ? 80 : 50;
-
-    let grad = ctx.createRadialGradient(e.x - 5, e.y - 25, 3, e.x, e.y - 20, sizeW);
-    grad.addColorStop(0, '#ff4d4d');
-    grad.addColorStop(0.8, '#4a0000');
-    grad.addColorStop(1, '#110000');
-
-    ctx.fillStyle = grad;
-    ctx.fillRect(e.x - sizeW/2, e.y - sizeH + 5, sizeW, sizeH);
-    ctx.restore();
-
-    // Barra de Vida
-    let bWidth = sizeW + 10;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(e.x - bWidth/2, e.y - sizeH - 12, bWidth, 6);
-    ctx.fillStyle = '#ff0044';
-    ctx.fillRect(e.x - bWidth/2 + 1, e.y - sizeH - 11, (e.hp / e.maxHp) * (bWidth - 2), 4);
+    drawEnemyModel(e.x, e.y, e.anim, e.isBoss);
+    let bw = e.isBoss ? 60 : 32;
+    ctx.fillStyle = '#000'; ctx.fillRect(e.x - bw/2, e.y - (e.isBoss ? 110 : 68), bw, 6);
+    ctx.fillStyle = '#ef4444'; ctx.fillRect(e.x - bw/2 + 1, e.y - (e.isBoss ? 109 : 67), (e.hp / e.maxHp) * (bw - 2), 4);
   });
 
-  // CAPA 7: Proyectiles con Resplandor Vibrante
   projectiles.forEach(p => {
     ctx.save();
-    ctx.shadowColor = p.color;
-    ctx.shadowBlur = 15;
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-    ctx.fill();
+    if (p.type === 'mage') {
+      ctx.fillStyle = '#c084fc'; ctx.shadowColor = '#c084fc'; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2); ctx.fill();
+    } else {
+      ctx.fillStyle = '#38bdf8'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 8;
+      ctx.fillRect(p.x, p.y, 10, 4);
+    }
     ctx.restore();
   });
 
-  // CAPA 8: Partículas
   particles.forEach(pt => {
     ctx.fillStyle = pt.color;
     ctx.fillRect(pt.x, pt.y, 4, 4);
