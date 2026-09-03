@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Emolio el RPG</title>
+  <title>Emolio el RPG v2.0</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    body, html { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; }
-    
-    /* Contenedor principal adaptable */
-    #game-wrapper {
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Roboto, sans-serif; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #08090d; color: #fff; }
+
+    #game-container {
       position: relative;
       width: 100vw;
       height: 100vh;
@@ -22,16 +21,15 @@
     canvas {
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      box-shadow: 0 0 30px rgba(0,0,0,0.9);
+      object-fit: fill;
     }
 
-    /* Orientación Horizontal Obligatoria */
-    #rotate-device {
+    /* Pantalla de rotación */
+    #rotate-screen {
       display: none;
       position: fixed;
       inset: 0;
-      background: #111;
+      background: #0d0e15;
       z-index: 9999;
       flex-direction: column;
       align-items: center;
@@ -39,285 +37,215 @@
       text-align: center;
       padding: 20px;
     }
-    #rotate-device h2 { color: #f39c12; margin-bottom: 10px; }
+    #rotate-screen h2 { color: #f39c12; margin-bottom: 10px; font-size: 24px; }
 
     @media screen and (orientation: portrait) {
-      #rotate-device { display: flex; }
+      #rotate-screen { display: flex; }
     }
 
-    /* HUD Superior */
+    /* HUD */
     #hud {
       position: absolute;
-      top: 15px;
-      left: 20px;
-      right: 20px;
+      top: 10px;
+      left: 10px;
+      right: 10px;
       display: flex;
       justify-content: space-between;
       pointer-events: none;
       z-index: 10;
     }
-    .hud-box {
-      background: rgba(16, 20, 31, 0.85);
-      border: 2px solid #34495e;
-      padding: 8px 18px;
+    .hud-card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #334155;
+      padding: 6px 12px;
       border-radius: 8px;
       font-weight: bold;
-      font-size: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-size: 14px;
+      color: #f8fafc;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
     }
 
-    /* Barra de Reclutamiento Inferior */
-    #deploy-bar {
+    /* Barra Inferior de Héroes */
+    #hero-bar {
       position: absolute;
-      bottom: 15px;
+      bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 12px;
-      background: rgba(16, 20, 31, 0.9);
-      padding: 10px;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      padding: 8px 12px;
       border-radius: 12px;
-      border: 2px solid #5d6d7e;
+      border: 1px solid #475569;
       z-index: 10;
     }
-    .deploy-btn {
-      background: #2c3e50;
-      border: 2px solid #e74c3c;
+    .hero-btn {
+      background: #1e293b;
+      border: 2px solid #3b82f6;
       color: #fff;
-      padding: 8px 14px;
+      padding: 8px 12px;
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
+      font-size: 13px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      transition: all 0.2s;
+      touch-action: manipulation;
     }
-    .deploy-btn:hover { background: #34495e; transform: translateY(-3px); }
-    .deploy-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-    .deploy-btn span { font-size: 11px; color: #f1c40f; margin-top: 2px; }
+    .hero-btn span { font-size: 10px; color: #fbbf24; margin-top: 2px; }
+    .hero-btn:disabled { opacity: 0.3; border-color: #64748b; }
 
-    /* Ventanas Emergentes (Cartas Roguelike y Meta-Progreso) */
-    .overlay-modal {
+    /* Modales */
+    .modal {
       position: absolute;
       inset: 0;
-      background: rgba(5, 7, 12, 0.92);
+      background: rgba(2, 6, 23, 0.92);
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 20;
     }
-    .overlay-modal h2 { font-size: 32px; color: #f1c40f; margin-bottom: 25px; text-shadow: 0 0 10px rgba(241,196,15,0.5); }
-
-    .cards-wrapper { display: flex; gap: 20px; }
-    .card {
-      width: 180px;
-      height: 250px;
-      background: linear-gradient(145deg, #1f2430, #0f1219);
-      border: 3px solid #f39c12;
-      border-radius: 12px;
-      padding: 15px;
+    .modal h2 { font-size: 26px; color: #fbbf24; margin-bottom: 20px; }
+    .cards-wrapper { display: flex; gap: 15px; }
+    .card-item {
+      width: 150px;
+      height: 210px;
+      background: #1e293b;
+      border: 2px solid #f59e0b;
+      border-radius: 10px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       align-items: center;
-      cursor: pointer;
-      transition: all 0.3s;
       text-align: center;
-    }
-    .card:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 0 25px #f39c12; border-color: #fff; }
-    .card h3 { color: #f1c40f; font-size: 18px; }
-    .card p { font-size: 13px; color: #bdc3c7; margin: 10px 0; }
-
-    /* Menú Tienda Power-Up (Meta-Progreso) */
-    .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 80%; max-width: 600px; }
-    .shop-item {
-      background: #1a252f;
-      border: 2px solid #34495e;
-      padding: 15px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .btn-action {
-      background: #27ae60;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-weight: bold;
       cursor: pointer;
     }
-    .btn-action:hover { background: #2ecc71; }
+    .card-item h3 { color: #fbbf24; font-size: 15px; }
+    .card-item p { font-size: 11px; color: #cbd5e1; }
+    .btn-select { background: #f59e0b; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; color: #000; }
 
-    #fullscreen-btn {
+    /* Botón Pantalla Completa */
+    #fs-btn {
       position: absolute;
-      top: 15px;
-      right: 20px;
+      top: 10px;
+      right: 10px;
       z-index: 15;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid #fff;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid #64748b;
       color: white;
-      padding: 5px 10px;
-      border-radius: 5px;
-      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
     }
   </style>
 </head>
 <body>
 
-  <div id="rotate-device">
-    <h2>📱 Por favor, gira tu dispositivo</h2>
-    <p>Emolio el RPG está optimizado para jugarse en modo horizontal.</p>
+  <div id="rotate-screen">
+    <h2>🔄 Gira tu dispositivo</h2>
+    <p>Emolio el RPG está diseñado para jugarse en pantalla horizontal.</p>
   </div>
 
-  <div id="game-wrapper">
-    <button id="fullscreen-btn" onclick="toggleFullscreen()"> Pantalla Completa</button>
+  <div id="game-container">
+    <button id="fs-btn" onclick="goFullscreen()"> fullscreen</button>
     <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
-    <!-- HUD General -->
     <div id="hud">
-      <div class="hud-box">🏰 Base HP: <span id="base-hp">1000</span></div>
-      <div class="hud-box">⚔️ Oleada: <span id="wave-num">1</span></div>
-      <div class="hud-box">💧 Maná: <span id="mana-num">50</span></div>
-      <div class="hud-box">🪙 Oro: <span id="gold-num">0</span></div>
+      <div class="hud-card">🏰 Base: <span id="hp-txt">1000</span></div>
+      <div class="hud-card">⚔️ Oleada: <span id="wave-txt">1</span></div>
+      <div class="hud-card">💧 Maná: <span id="mana-txt">100</span></div>
+      <div class="hud-card">🪙 Oro: <span id="gold-txt">0</span></div>
     </div>
 
-    <!-- Barra de Invocación -->
-    <div id="deploy-bar">
-      <button class="deploy-btn" onclick="deployHero('knight')" id="btn-knight">🗡️ Guerrero<span>30 Maná</span></button>
-      <button class="deploy-btn" onclick="deployHero('archer')" id="btn-archer">🏹 Arquera<span>40 Maná</span></button>
-      <button class="deploy-btn" onclick="deployHero('mage')" id="btn-mage">🔥 Mago<span>60 Maná</span></button>
-      <button class="deploy-btn" onclick="deployHero('paladin')" id="btn-paladin">🛡️ Paladín<span>80 Maná</span></button>
+    <div id="hero-bar">
+      <button class="hero-btn" onclick="spawnHero('knight')" id="b-knight">🗡️ Guerrero<span>30 M</span></button>
+      <button class="hero-btn" onclick="spawnHero('archer')" id="b-archer">🏹 Arquera<span>40 M</span></button>
+      <button class="hero-btn" onclick="spawnHero('mage')" id="b-mage">🔥 Mago<span>60 M</span></button>
+      <button class="hero-btn" onclick="spawnHero('paladin')" id="b-paladin">🛡️ Paladín<span>80 M</span></button>
     </div>
 
-    <!-- Modal Roguelike: Selección de Carta -->
-    <div class="overlay-modal" id="card-modal">
-      <h2>¡MEJORA TU EJÉRCITO!</h2>
+    <div class="modal" id="card-modal">
+      <h2>¡SUBIDA DE NIVEL! ELIGE MEJORA</h2>
       <div class="cards-wrapper" id="cards-container"></div>
     </div>
-
-    <!-- Modal Power-Up (Derrota / Meta-Progreso) -->
-    <div class="overlay-modal" id="meta-modal">
-      <h2>¡TUS HÉROES HAN CAÍDO!</h2>
-      <p style="margin-bottom: 20px; color:#aaa;">Usa el oro recolectado para mejorar permanentemente a tu reino:</p>
-      <div class="shop-grid">
-        <div class="shop-item">
-          <div><strong>+Daño Base</strong><br><small id="lvl-dmg">Nivel 0 (+5%)</small></div>
-          <button class="btn-action" onclick="buyMeta('dmg')">Mejorar (<span id="cost-dmg">50</span> 🪙)</button>
-        </div>
-        <div class="shop-item">
-          <div><strong>+Salud del Castillo</strong><br><small id="lvl-hp">Nivel 0 (+200 HP)</small></div>
-          <button class="btn-action" onclick="buyMeta('hp')">Mejorar (<span id="cost-hp">50</span> 🪙)</button>
-        </div>
-        <div class="shop-item">
-          <div><strong>+Regeneración de Maná</strong><br><small id="lvl-mana">Nivel 0 (+1/s)</small></div>
-          <button class="btn-action" onclick="buyMeta('mana')">Mejorar (<span id="cost-mana">75</span> 🪙)</button>
-        </div>
-      </div>
-      <button class="btn-action" style="margin-top: 30px; background:#e74c3c; font-size: 18px;" onclick="restartGame()">Reintentar Odisea</button>
-    </div>
-
   </div>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// --- PANTALLA COMPLETA & ORIENTACIÓN ---
-function toggleFullscreen() {
+function goFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(()=>{});
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('landscape').catch(()=>{});
-    }
-  } else {
-    document.exitFullscreen();
   }
 }
 
-// --- ESTADO DEL JUEGO ---
-let state = {
+let game = {
   gold: 0,
   mana: 100,
   maxMana: 100,
   wave: 1,
   baseHp: 1000,
   maxBaseHp: 1000,
-  inWave: true,
   paused: false,
-  // Meta-Progreso persistente
-  meta: { dmgLvl: 0, hpLvl: 0, manaLvl: 0 }
+  inWave: true
 };
 
-// --- ESTRUCTURA DE UNIDADES ---
 const HERO_TYPES = {
-  knight: { name: 'Guerrero', hp: 200, maxHp: 200, dmg: 18, range: 40, speed: 1.2, atkSpeed: 50, cost: 30, color: '#3498db' },
-  archer: { name: 'Arquera', hp: 100, maxHp: 100, dmg: 14, range: 300, speed: 0.9, atkSpeed: 30, cost: 40, color: '#2ecc71' },
-  mage:   { name: 'Mago', hp: 90, maxHp: 90, dmg: 35, range: 220, speed: 0.8, atkSpeed: 70, cost: 60, color: '#9b59b6' },
-  paladin:{ name: 'Paladín', hp: 450, maxHp: 450, dmg: 10, range: 40, speed: 0.7, atkSpeed: 60, cost: 80, color: '#f1c40f' }
+  knight: { name: 'Guerrero', hp: 250, maxHp: 250, dmg: 20, range: 50, speed: 1.2, atkSpeed: 45, cost: 30, color: '#3b82f6' },
+  archer: { name: 'Arquera', hp: 120, maxHp: 120, dmg: 16, range: 350, speed: 1.0, atkSpeed: 28, cost: 40, color: '#10b981' },
+  mage:   { name: 'Mago', hp: 100, maxHp: 100, dmg: 40, range: 250, speed: 0.8, atkSpeed: 60, cost: 60, color: '#a855f7' },
+  paladin:{ name: 'Paladín', hp: 500, maxHp: 500, dmg: 12, range: 50, speed: 0.6, atkSpeed: 55, cost: 80, color: '#eab308' }
 };
 
 let heroes = [];
 let enemies = [];
 let projectiles = [];
-let particles = [];
 
-// --- INICIALIZACIÓN Y BUCLE PRINCIPAL ---
-function spawnEnemyWave() {
-  const isBossWave = state.wave % 5 === 0;
-  let count = isBossWave ? 1 : 5 + state.wave * 2;
-  
+function startWave() {
+  const isBoss = game.wave % 5 === 0;
+  let count = isBoss ? 1 : 4 + game.wave * 2;
+
   for (let i = 0; i < count; i++) {
-    let isBoss = isBossWave;
     enemies.push({
-      x: 1300 + (i * (isBoss ? 0 : 60)),
+      x: 1300 + (i * (isBoss ? 0 : 70)),
       y: 350 + (Math.random() * 200 - 100),
-      hp: isBoss ? 800 + state.wave * 300 : 50 + state.wave * 20,
-      maxHp: isBoss ? 800 + state.wave * 300 : 50 + state.wave * 20,
-      dmg: isBoss ? 50 : 8 + state.wave * 2,
-      speed: isBoss ? 0.4 : 0.8 + Math.random() * 0.4,
-      range: isBoss ? 60 : 30,
-      atkSpeed: isBoss ? 60 : 40,
+      hp: isBoss ? 1000 + game.wave * 400 : 60 + game.wave * 25,
+      maxHp: isBoss ? 1000 + game.wave * 400 : 60 + game.wave * 25,
+      dmg: isBoss ? 60 : 10 + game.wave * 3,
+      speed: isBoss ? 0.4 : 0.7 + Math.random() * 0.4,
+      range: isBoss ? 70 : 35,
+      atkSpeed: isBoss ? 60 : 45,
       timer: 0,
       isBoss: isBoss,
-      color: isBoss ? '#e74c3c' : '#7f8c8d'
+      color: isBoss ? '#ef4444' : '#64748b'
     });
   }
 }
 
-function deployHero(type) {
-  const template = HERO_TYPES[type];
-  if (state.mana >= template.cost) {
-    state.mana -= template.cost;
-    const bonusDmg = 1 + (state.meta.dmgLvl * 0.05);
+function spawnHero(type) {
+  const t = HERO_TYPES[type];
+  if (game.mana >= t.cost) {
+    game.mana -= t.cost;
     heroes.push({
-      ...template,
-      x: 120 + Math.random() * 40,
-      y: 320 + (Math.random() * 220 - 110),
-      dmg: template.dmg * bonusDmg,
+      ...t,
+      x: 140 + Math.random() * 30,
+      y: 320 + (Math.random() * 200 - 100),
       timer: 0
     });
   }
 }
 
-// Bucle de Lógica
 function update() {
-  if (state.paused) return;
+  if (game.paused) return;
 
-  // Regeneración de Maná
-  if (state.mana < state.maxMana) {
-    state.mana += 0.08 + (state.meta.manaLvl * 0.02);
-  }
+  if (game.mana < game.maxMana) game.mana += 0.12;
 
-  // Lógica de Héroes
+  // Lógica Héroes
   heroes.forEach((h, hIdx) => {
-    // Buscar enemigo más cercano
     let target = null;
     let minDist = Infinity;
     enemies.forEach(e => {
@@ -326,29 +254,20 @@ function update() {
     });
 
     if (target && minDist <= h.range) {
-      // Atacar
       h.timer++;
       if (h.timer >= h.atkSpeed) {
         h.timer = 0;
-        projectiles.push({
-          x: h.x, y: h.y,
-          target: target,
-          dmg: h.dmg,
-          speed: 8,
-          color: h.color
-        });
+        projectiles.push({ x: h.x, y: h.y, target: target, dmg: h.dmg, speed: 9, color: h.color });
       }
     } else {
-      // Avanzar
       h.x += h.speed;
     }
 
     if (h.hp <= 0) heroes.splice(hIdx, 1);
   });
 
-  // Lógica de Enemigos
+  // Lógica Enemigos
   enemies.forEach((e, eIdx) => {
-    // Buscar héroe o castillo
     let target = null;
     let minDist = Infinity;
     heroes.forEach(h => {
@@ -361,35 +280,27 @@ function update() {
       if (e.timer >= e.atkSpeed) {
         e.timer = 0;
         target.hp -= e.dmg;
-        createParticles(target.x, target.y, '#e74c3c');
       }
     } else if (e.x <= 150) {
-      // Atacar Base
-      state.baseHp -= e.dmg;
-      createParticles(150, e.y, '#f1c40f');
-      if (state.baseHp <= 0) gameOver();
+      game.baseHp -= e.dmg;
     } else {
       e.x -= e.speed;
     }
 
     if (e.hp <= 0) {
-      state.gold += e.isBoss ? 100 : 15;
-      createParticles(e.x, e.y, '#f1c40f');
+      game.gold += e.isBoss ? 120 : 15;
       enemies.splice(eIdx, 1);
     }
   });
 
-  // Lógica Proyectiles
+  // Proyectiles
   projectiles.forEach((p, pIdx) => {
     let dx = p.target.x - p.x;
     let dy = p.target.y - p.y;
     let dist = Math.hypot(dx, dy);
 
-    if (dist < 10 || p.target.hp <= 0) {
-      if (p.target.hp > 0) {
-        p.target.hp -= p.dmg;
-        createParticles(p.x, p.y, p.color);
-      }
+    if (dist < 12 || p.target.hp <= 0) {
+      if (p.target.hp > 0) p.target.hp -= p.dmg;
       projectiles.splice(pIdx, 1);
     } else {
       p.x += (dx / dist) * p.speed;
@@ -397,199 +308,115 @@ function update() {
     }
   });
 
-  // Partículas
-  particles.forEach((pt, index) => {
-    pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.03;
-    if (pt.life <= 0) particles.splice(index, 1);
-  });
-
-  // Verificar Fin de Oleada
-  if (enemies.length === 0 && state.inWave) {
-    state.inWave = false;
-    showRoguelikeCards();
+  if (enemies.length === 0 && game.inWave) {
+    game.inWave = false;
+    showCards();
   }
 
   // Actualizar UI
-  document.getElementById('base-hp').innerText = Math.max(0, Math.floor(state.baseHp));
-  document.getElementById('wave-num').innerText = state.wave;
-  document.getElementById('mana-num').innerText = Math.floor(state.mana);
-  document.getElementById('gold-num').innerText = state.gold;
+  document.getElementById('hp-txt').innerText = Math.max(0, Math.floor(game.baseHp));
+  document.getElementById('wave-txt').innerText = game.wave;
+  document.getElementById('mana-txt').innerText = Math.floor(game.mana);
+  document.getElementById('gold-txt').innerText = game.gold;
 
-  // Habilitar/Deshabilitar Botones de Invocación
-  document.getElementById('btn-knight').disabled = state.mana < HERO_TYPES.knight.cost;
-  document.getElementById('btn-archer').disabled = state.mana < HERO_TYPES.archer.cost;
-  document.getElementById('btn-mage').disabled = state.mana < HERO_TYPES.mage.cost;
-  document.getElementById('btn-paladin').disabled = state.mana < HERO_TYPES.paladin.cost;
+  document.getElementById('b-knight').disabled = game.mana < HERO_TYPES.knight.cost;
+  document.getElementById('b-archer').disabled = game.mana < HERO_TYPES.archer.cost;
+  document.getElementById('b-mage').disabled = game.mana < HERO_TYPES.mage.cost;
+  document.getElementById('b-paladin').disabled = game.mana < HERO_TYPES.paladin.cost;
 }
 
-function createParticles(x, y, color) {
-  for(let i=0; i<6; i++) {
-    particles.push({
-      x: x, y: y,
-      vx: (Math.random() - 0.5)*4,
-      vy: (Math.random() - 0.5)*4,
-      life: 1, color: color
-    });
-  }
-}
-
-// Renderizado Gráfico Procedural HD
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Fondo Escenario
-  let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, '#1a1c29');
-  gradient.addColorStop(0.6, '#2b2b40');
-  gradient.addColorStop(1, '#0f1016');
-  ctx.fillStyle = gradient;
+  // Fondo
+  ctx.fillStyle = '#0f172a';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Suelo/Camino
-  ctx.fillStyle = '#222533';
-  ctx.fillRect(0, 250, canvas.width, 260);
-  ctx.strokeStyle = '#32374d';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(0, 250, canvas.width, 260);
+  // Campo de batalla
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(0, 220, canvas.width, 280);
 
-  // Dibujar Castillo Base (TD)
-  ctx.fillStyle = '#4a5568';
-  ctx.fillRect(0, 180, 140, 360);
-  ctx.fillStyle = '#2d3748';
-  // Almenas del castillo
-  for(let i=0; i<180; i+=30) ctx.fillRect(110, 180 + i, 30, 15);
+  // Torre Base
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(0, 160, 130, 380);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(120, 160, 10, 380);
 
-  // Dibujar Héroes
+  // Héroes
   heroes.forEach(h => {
     ctx.fillStyle = h.color;
     ctx.beginPath();
-    ctx.arc(h.x, h.y, 18, 0, Math.PI*2);
+    ctx.arc(h.x, h.y, 16, 0, Math.PI*2);
     ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
 
-    // Barra de vida
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(h.x-20, h.y-30, 40, 6);
-    ctx.fillStyle = '#2ecc71';
-    ctx.fillRect(h.x-20, h.y-30, (h.hp/h.maxHp)*40, 6);
+    // Vida
+    ctx.fillStyle = '#000';
+    ctx.fillRect(h.x-16, h.y-25, 32, 4);
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(h.x-16, h.y-25, (h.hp/h.maxHp)*32, 4);
   });
 
-  // Dibujar Enemigos
+  // Enemigos
   enemies.forEach(e => {
     ctx.fillStyle = e.color;
-    let size = e.isBoss ? 35 : 20;
+    let r = e.isBoss ? 30 : 18;
     ctx.beginPath();
-    ctx.arc(e.x, e.y, size, 0, Math.PI*2);
+    ctx.arc(e.x, e.y, r, 0, Math.PI*2);
     ctx.fill();
 
-    // Barra de vida
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(e.x-size, e.y-size-10, size*2, e.isBoss ? 8 : 5);
-    ctx.fillStyle = '#e74c3c';
-    ctx.fillRect(e.x-size, e.y-size-10, (e.hp/e.maxHp)*(size*2), e.isBoss ? 8 : 5);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(e.x-r, e.y-r-8, r*2, 5);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(e.x-r, e.y-r-8, (e.hp/e.maxHp)*(r*2), 5);
   });
 
-  // Dibujar Proyectiles
+  // Proyectiles
   projectiles.forEach(p => {
     ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 6, 0, Math.PI*2);
+    ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
     ctx.fill();
-  });
-
-  // Dibujar Partículas
-  particles.forEach(pt => {
-    ctx.fillStyle = pt.color;
-    ctx.globalAlpha = pt.life;
-    ctx.fillRect(pt.x, pt.y, 4, 4);
-    ctx.globalAlpha = 1.0;
   });
 }
 
-// --- SISTEMA ROGUELIKE ---
-const CARD_POOL = [
-  { title: "⚡ Furia Mágica", desc: "+25% Velocidad de ataque general", apply: () => Object.values(HERO_TYPES).forEach(h => h.atkSpeed *= 0.75) },
-  { title: "🗡️ Filo Mitril", desc: "+30% Daño de ataque de Héroes", apply: () => Object.values(HERO_TYPES).forEach(h => h.dmg *= 1.3) },
-  { title: "🏰 Refuerzo de Murallas", desc: "Restaura +300 HP a la Base", apply: () => state.baseHp = Math.min(state.maxBaseHp, state.baseHp + 300) },
-  { title: "💧 Fuente Astral", desc: "Aumenta la velocidad de Maná", apply: () => state.maxMana += 30 }
+const CARDS = [
+  { title: "⚡ Ataque Veloz", desc: "+20% Velocidad de ataque general", run: () => Object.values(HERO_TYPES).forEach(h => h.atkSpeed *= 0.8) },
+  { title: "🗡️ Filo Afilado", desc: "+25% Daño de Héroes", run: () => Object.values(HERO_TYPES).forEach(h => h.dmg *= 1.25) },
+  { title: "🏰 Reparar Base", desc: "+300 Vida a la torre", run: () => game.baseHp = Math.min(game.maxBaseHp, game.baseHp + 300) }
 ];
 
-function showRoguelikeCards() {
-  state.paused = true;
+function showCards() {
+  game.paused = true;
   const modal = document.getElementById('card-modal');
   const container = document.getElementById('cards-container');
   container.innerHTML = '';
 
-  // Seleccionar 3 cartas aleatorias
-  let shuffled = [...CARD_POOL].sort(() => 0.5 - Math.random()).slice(0, 3);
-
-  shuffled.forEach(card => {
-    let div = document.createElement('div');
-    div.className = 'card';
-    div.innerHTML = `<h3>${card.title}</h3><p>${card.desc}</p><button class="btn-action">Elegir</button>`;
-    div.onclick = () => {
-      card.apply();
+  CARDS.forEach(c => {
+    let d = document.createElement('div');
+    d.className = 'card-item';
+    d.innerHTML = `<h3>${c.title}</h3><p>${c.desc}</p><button class="btn-select">Elegir</button>`;
+    d.onclick = () => {
+      c.run();
       modal.style.display = 'none';
-      state.paused = false;
-      state.wave++;
-      state.inWave = true;
-      spawnEnemyWave();
+      game.paused = false;
+      game.wave++;
+      game.inWave = true;
+      startWave();
     };
-    container.appendChild(div);
+    container.appendChild(d);
   });
 
   modal.style.display = 'flex';
 }
 
-// --- META-PROGRESO Y TIENDA ---
-function gameOver() {
-  state.paused = true;
-  document.getElementById('meta-modal').style.display = 'flex';
-}
-
-function buyMeta(type) {
-  if (type === 'dmg' && state.gold >= 50) {
-    state.gold -= 50; state.meta.dmgLvl++;
-  } else if (type === 'hp' && state.gold >= 50) {
-    state.gold -= 50; state.meta.hpLvl++;
-    state.maxBaseHp += 200;
-  } else if (type === 'mana' && state.gold >= 75) {
-    state.gold -= 75; state.meta.manaLvl++;
-  }
-  updateMetaUI();
-}
-
-function updateMetaUI() {
-  document.getElementById('lvl-dmg').innerText = `Nivel ${state.meta.dmgLvl} (+${state.meta.dmgLvl * 5}%)`;
-  document.getElementById('lvl-hp').innerText = `Nivel ${state.meta.hpLvl} (+${state.meta.hpLvl * 200} HP)`;
-  document.getElementById('lvl-mana').innerText = `Nivel ${state.meta.manaLvl} (+${state.meta.manaLvl} Mana/s)`;
-}
-
-function restartGame() {
-  state.wave = 1;
-  state.baseHp = state.maxBaseHp;
-  state.mana = 100;
-  heroes = [];
-  enemies = [];
-  projectiles = [];
-  document.getElementById('meta-modal').style.display = 'none';
-  state.paused = false;
-  state.inWave = true;
-  spawnEnemyWave();
-}
-
-// Bucle principal
-function gameLoop() {
+function loop() {
   update();
   draw();
-  requestAnimationFrame(gameLoop);
+  requestAnimationFrame(loop);
 }
 
-// Arranque inicial
-spawnEnemyWave();
-gameLoop();
+startWave();
+loop();
 </script>
 </body>
 </html>
