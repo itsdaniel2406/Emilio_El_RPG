@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Emolio RPG v8.1 - Standalone Fixed Assets</title>
+  <title>Emilio RPG v9.0 - Enhanced HD Graphics & Fixed Combat</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Roboto, sans-serif; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; }
@@ -96,7 +96,7 @@
       left: 15px;
       font-size: 12px;
       font-weight: 800;
-      color: rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.45);
       letter-spacing: 1.5px;
       pointer-events: none;
       z-index: 10;
@@ -111,7 +111,7 @@
       transform: translateX(-50%);
       display: flex;
       gap: 10px;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.92);
       padding: 8px 14px;
       border-radius: 14px;
       border: 2px solid #475569;
@@ -194,7 +194,7 @@
 
   <div id="rotate-screen">
     <h2>🔄 Gira tu dispositivo</h2>
-    <p>Emolio el RPG está diseñado para jugarse en pantalla horizontal.</p>
+    <p>Emilio el RPG está diseñado para jugarse en pantalla horizontal.</p>
   </div>
 
   <div id="game-container">
@@ -247,7 +247,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// --- ASSETS AUTOCONTENIDOS (SVG DATA-URI) - NO DEPENDEN DE NINGÚN SERVIDOR EXTERNO ---
+// --- CREACIÓN DE ASSETS SVG HD VECTORIALES ---
 function buildSvgAsset(svgStr) {
   const img = new Image();
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
@@ -255,52 +255,135 @@ function buildSvgAsset(svgStr) {
 }
 
 const assets = {
-  castle: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160">
-    <rect x="10" y="40" width="80" height="110" fill="#475569" stroke="#1e293b" stroke-width="4"/>
-    <rect x="5" y="20" width="25" height="30" fill="#64748b"/>
-    <rect x="70" y="20" width="25" height="30" fill="#64748b"/>
-    <rect x="35" y="10" width="30" height="40" fill="#334155"/>
-    <path d="M 35 10 L 50 0 L 65 10 Z" fill="#ef4444"/>
-    <rect x="40" y="100" width="20" height="50" rx="10" fill="#0f172a"/>
+  castle: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300">
+    <rect x="20" y="80" width="160" height="220" fill="#334155" stroke="#0f172a" stroke-width="4"/>
+    <!-- Detalle de piedras en pared -->
+    <rect x="30" y="100" width="30" height="15" fill="#475569" rx="2"/>
+    <rect x="70" y="120" width="40" height="15" fill="#475569" rx="2"/>
+    <rect x="130" y="100" width="35" height="15" fill="#475569" rx="2"/>
+    <rect x="40" y="160" width="45" height="15" fill="#475569" rx="2"/>
+    <rect x="110" y="180" width="40" height="15" fill="#475569" rx="2"/>
+    <!-- Torre central e izquierda -->
+    <rect x="10" y="40" width="45" height="60" fill="#1e293b"/>
+    <rect x="145" y="40" width="45" height="60" fill="#1e293b"/>
+    <!-- Almenas -->
+    <rect x="10" y="25" width="10" height="15" fill="#475569"/>
+    <rect x="28" y="25" width="10" height="15" fill="#475569"/>
+    <rect x="45" y="25" width="10" height="15" fill="#475569"/>
+    <rect x="145" y="25" width="10" height="15" fill="#475569"/>
+    <rect x="163" y="25" width="10" height="15" fill="#475569"/>
+    <rect x="180" y="25" width="10" height="15" fill="#475569"/>
+    <!-- Techo Conico Gran Torre -->
+    <polygon points="100,0 60,60 140,60" fill="#991b1b"/>
+    <rect x="65" y="60" width="70" height="30" fill="#475569"/>
+    <!-- Banderín -->
+    <line x1="100" y1="0" x2="100" y2="-20" stroke="#f59e0b" stroke-width="3"/>
+    <polygon points="100,-20 125,-12 100,-4" fill="#ef4444"/>
+    <!-- Puerta de roble reforzada -->
+    <path d="M 75 300 L 75 220 C 75 190, 125 190, 125 220 L 125 300 Z" fill="#78350f" stroke="#451a03" stroke-width="4"/>
+    <line x1="100" y1="195" x2="100" y2="300" stroke="#451a03" stroke-width="3"/>
+    <circle cx="90" cy="250" r="3" fill="#fbbf24"/>
+    <circle cx="110" cy="250" r="3" fill="#fbbf24"/>
   </svg>`),
+
   heroes: {
-    knight: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50">
-      <circle cx="20" cy="12" r="8" fill="#fcd34d"/>
-      <path d="M 10 20 L 30 20 L 32 45 L 8 45 Z" fill="#3b82f6"/>
-      <rect x="30" y="15" width="4" height="25" fill="#94a3b8"/>
-      <rect x="27" y="22" width="10" height="3" fill="#cbd5e1"/>
+    knight: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 70">
+      <!-- Sombra -->
+      <ellipse cx="30" cy="65" rx="18" ry="5" fill="rgba(0,0,0,0.3)"/>
+      <!-- Cuerpo con Armadura de Placas -->
+      <path d="M 18 30 L 42 30 L 45 58 L 15 58 Z" fill="#94a3b8" stroke="#334155" stroke-width="2"/>
+      <path d="M 22 30 L 38 30 L 35 55 L 25 55 Z" fill="#cbd5e1"/>
+      <!-- Hombreras -->
+      <circle cx="15" cy="32" r="7" fill="#64748b"/>
+      <circle cx="45" cy="32" r="7" fill="#64748b"/>
+      <!-- Casco -->
+      <circle cx="30" cy="18" r="12" fill="#64748b"/>
+      <path d="M 22 18 L 38 18 L 35 22 L 25 22 Z" fill="#0f172a"/> <!-- Ranura del casco -->
+      <path d="M 30 6 L 36 0 L 32 10 Z" fill="#ef4444"/> <!-- Pluma -->
+      <!-- Espada Templaria -->
+      <rect x="46" y="10" width="4" height="40" fill="#e2e8f0" stroke="#475569"/>
+      <rect x="40" y="45" width="16" height="4" fill="#fbbf24"/>
+      <circle cx="48" cy="52" r="3" fill="#fbbf24"/>
+      <!-- Escudo -->
+      <path d="M 10 32 L 22 32 L 22 52 L 16 58 L 10 52 Z" fill="#2563eb" stroke="#1d4ed8" stroke-width="2"/>
+      <path d="M 16 32 L 16 58" stroke="#fbbf24" stroke-width="2"/>
     </svg>`),
-    archer: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50">
-      <circle cx="20" cy="12" r="8" fill="#fcd34d"/>
-      <path d="M 12 20 L 28 20 L 30 45 L 10 45 Z" fill="#22c55e"/>
-      <path d="M 30 15 Q 38 27 30 40" stroke="#78350f" stroke-width="3" fill="none"/>
+
+    archer: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 70">
+      <!-- Capa y Capucha verde -->
+      <path d="M 18 20 L 42 20 L 48 60 L 12 60 Z" fill="#15803d"/>
+      <!-- Cabeza / Capucha -->
+      <path d="M 20 18 Q 30 5 40 18 Q 40 28 20 28 Z" fill="#166534"/>
+      <circle cx="30" cy="18" r="7" fill="#fde047"/> <!-- Cara -->
+      <!-- Arco de madera recurvo -->
+      <path d="M 42 10 Q 58 35 42 60" fill="none" stroke="#78350f" stroke-width="4"/>
+      <line x1="42" y1="10" x2="42" y2="60" stroke="#e2e8f0" stroke-width="1.5"/>
+      <!-- Flecha lista -->
+      <line x1="25" y1="35" x2="52" y2="35" stroke="#475569" stroke-width="2"/>
+      <polygon points="52,35 46,31 46,39" fill="#94a3b8"/>
     </svg>`),
-    mage: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50">
-      <path d="M 8 12 L 20 0 L 32 12 Z" fill="#a855f7"/>
-      <circle cx="20" cy="15" r="7" fill="#fcd34d"/>
-      <path d="M 10 22 L 30 22 L 34 48 L 6 48 Z" fill="#7e22ce"/>
-      <rect x="31" y="10" width="3" height="35" fill="#78350f"/>
-      <circle cx="32.5" cy="8" r="5" fill="#06b6d4"/>
+
+    mage: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 70">
+      <!-- Túnica mística -->
+      <path d="M 15 25 L 45 25 L 50 62 L 10 62 Z" fill="#6b21a8"/>
+      <path d="M 25 25 L 35 25 L 38 62 L 22 62 Z" fill="#a855f7"/>
+      <!-- Sombrero de Mago -->
+      <path d="M 8 22 L 52 22 L 30 -5 Z" fill="#581c87"/>
+      <circle cx="30" cy="22" r="4" fill="#fbbf24"/>
+      <!-- Bastón Arcano con gema brillante -->
+      <rect x="46" y="15" width="4" height="48" fill="#78350f"/>
+      <circle cx="48" cy="12" r="8" fill="#06b6d4"/>
+      <circle cx="48" cy="12" r="5" fill="#a5f3fc"/>
     </svg>`),
-    paladin: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50">
-      <circle cx="20" cy="12" r="9" fill="#e2e8f0"/>
-      <path d="M 8 20 L 32 20 L 34 48 L 6 48 Z" fill="#eab308"/>
-      <rect x="18" y="20" width="4" height="28" fill="#ffffff"/>
+
+    paladin: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 70">
+      <!-- Armadura Dorada de Paladín -->
+      <path d="M 15 28 L 45 28 L 48 60 L 12 60 Z" fill="#ca8a04" stroke="#854d0e" stroke-width="2"/>
+      <path d="M 20 28 L 40 28 L 36 58 L 24 58 Z" fill="#fef08a"/>
+      <!-- Escudo Gigante de la Luz -->
+      <path d="M 5 25 L 25 25 L 25 55 L 15 65 L 5 55 Z" fill="#eab308" stroke="#ffffff" stroke-width="2"/>
+      <polygon points="15,30 18,40 23,40 19,45 21,52 15,47 9,52 11,45 7,40 12,40" fill="#ffffff"/>
+      <!-- Cabeza con Corona/Casco -->
+      <circle cx="30" cy="16" r="10" fill="#e2e8f0"/>
+      <path d="M 20 12 L 40 12 L 30 4 Z" fill="#eab308"/>
+      <!-- Maza / Martillo sagrado -->
+      <rect x="44" y="20" width="5" height="38" fill="#78350f"/>
+      <rect x="40" y="15" width="13" height="12" fill="#94a3b8" rx="2"/>
     </svg>`)
   },
+
   enemies: {
-    villain: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50">
-      <circle cx="20" cy="14" r="8" fill="#ef4444"/>
-      <path d="M 10 22 L 30 22 L 32 46 L 8 46 Z" fill="#7f1d1d"/>
-      <circle cx="17" cy="12" r="2" fill="#000"/>
-      <circle cx="23" cy="12" r="2" fill="#000"/>
+    villain: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 70">
+      <!-- Orco/Villano Furioso -->
+      <path d="M 15 28 L 45 28 L 48 60 L 12 60 Z" fill="#15803d"/>
+      <circle cx="30" cy="18" r="12" fill="#22c55e"/>
+      <!-- Ojos Rojos e Inquietantes -->
+      <circle cx="25" cy="16" r="3" fill="#ef4444"/>
+      <circle cx="35" cy="16" r="3" fill="#ef4444"/>
+      <!-- Colmillos -->
+      <polygon points="24,24 26,20 28,24" fill="#ffffff"/>
+      <polygon points="32,24 34,20 36,24" fill="#ffffff"/>
+      <!-- Hacha de Guerra -->
+      <rect x="45" y="15" width="4" height="45" fill="#451a03"/>
+      <path d="M 47 18 C 60 10, 60 30, 47 35 Z" fill="#64748b" stroke="#334155" stroke-width="2"/>
     </svg>`),
-    boss: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 70">
-      <path d="M 15 20 L 20 5 L 30 15 L 40 5 L 45 20 Z" fill="#f59e0b"/>
-      <circle cx="30" cy="22" r="12" fill="#dc2626"/>
-      <path d="M 12 34 L 48 34 L 52 68 L 8 68 Z" fill="#450a0a"/>
-      <circle cx="24" cy="20" r="3" fill="#fef08a"/>
-      <circle cx="36" cy="20" r="3" fill="#fef08a"/>
+
+    boss: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 90">
+      <!-- Gran Señor Oscuro / Jefe -->
+      <path d="M 15 35 L 65 35 L 70 82 L 10 82 Z" fill="#450a0a" stroke="#7f1d1d" stroke-width="3"/>
+      <!-- Hombreras de Pinchos -->
+      <polygon points="5,35 18,20 22,38" fill="#1e293b"/>
+      <polygon points="75,35 62,20 58,38" fill="#1e293b"/>
+      <!-- Cabeza con Cuernos Demoníacos -->
+      <circle cx="40" cy="22" r="15" fill="#991b1b"/>
+      <path d="M 28 15 Q 15 -5 22 5" stroke="#f59e0b" stroke-width="5" fill="none"/>
+      <path d="M 52 15 Q 65 -5 58 5" stroke="#f59e0b" stroke-width="5" fill="none"/>
+      <!-- Ojos Brillantes -->
+      <circle cx="34" cy="20" r="3" fill="#fef08a"/>
+      <circle cx="46" cy="20" r="3" fill="#fef08a"/>
+      <!-- Gran Mandoble Flamígero -->
+      <rect x="68" y="5" width="6" height="75" fill="#dc2626"/>
+      <polygon points="71,-10 63,10 79,10" fill="#f97316"/>
     </svg>`)
   }
 };
@@ -334,16 +417,24 @@ let game = {
 };
 
 const HERO_TYPES = {
-  knight: { name: 'Guerrero', hp: 250, maxHp: 250, dmg: 20, range: 50, speed: 1.2, atkSpeed: 45, cost: 30, type: 'knight' },
-  archer: { name: 'Arquera', hp: 120, maxHp: 120, dmg: 16, range: 350, speed: 1.0, atkSpeed: 28, cost: 40, type: 'archer' },
-  mage:   { name: 'Mago', hp: 100, maxHp: 100, dmg: 40, range: 250, speed: 0.8, atkSpeed: 60, cost: 60, type: 'mage' },
-  paladin:{ name: 'Paladín', hp: 500, maxHp: 500, dmg: 12, range: 50, speed: 0.6, atkSpeed: 55, cost: 80, type: 'paladin' }
+  knight: { name: 'Guerrero', hp: 280, maxHp: 280, dmg: 22, range: 45, speed: 1.2, atkSpeed: 40, cost: 30, type: 'knight' },
+  archer: { name: 'Arquera', hp: 130, maxHp: 130, dmg: 18, range: 350, speed: 1.0, atkSpeed: 25, cost: 40, type: 'archer' },
+  mage:   { name: 'Mago', hp: 110, maxHp: 110, dmg: 45, range: 260, speed: 0.8, atkSpeed: 55, cost: 60, type: 'mage' },
+  paladin:{ name: 'Paladín', hp: 550, maxHp: 550, dmg: 14, range: 50, speed: 0.6, atkSpeed: 50, cost: 80, type: 'paladin' }
 };
 
 let heroes = [];
 let enemies = [];
 let projectiles = [];
 let particles = [];
+
+// Generar estrellas fijas para el fondo nocturno
+const stars = Array.from({ length: 70 }, () => ({
+  x: Math.random() * 1280,
+  y: Math.random() * 260,
+  r: Math.random() * 1.5 + 0.5,
+  alpha: Math.random()
+}));
 
 function saveGame() {
   const saveData = { game: game, heroTypes: HERO_TYPES };
@@ -380,13 +471,13 @@ function startWave() {
 
   for (let i = 0; i < count; i++) {
     enemies.push({
-      x: 1300 + (i * 65),
+      x: 1300 + (i * 75),
       y: 380 + (Math.random() * 180 - 90),
-      hp: 60 + game.wave * 22,
-      maxHp: 60 + game.wave * 22,
-      dmg: 10 + game.wave * 3,
-      speed: 0.7 + Math.random() * 0.4,
-      range: 35,
+      hp: 70 + game.wave * 25,
+      maxHp: 70 + game.wave * 25,
+      dmg: 12 + game.wave * 3,
+      speed: 0.7 + Math.random() * 0.3,
+      range: 40,
       atkSpeed: 45,
       timer: 0,
       isBoss: false,
@@ -399,16 +490,16 @@ function spawnBoss() {
   game.bossSpawned = true;
   document.getElementById('boss-bar-container').style.display = 'flex';
   
-  let bossHp = 800 + game.wave * 350;
+  let bossHp = 900 + game.wave * 400;
   enemies.push({
     x: 1350,
     y: 380,
     hp: bossHp,
     maxHp: bossHp,
-    dmg: 40 + game.wave * 12,
+    dmg: 45 + game.wave * 12,
     speed: 0.45,
     range: 75,
-    atkSpeed: 55,
+    atkSpeed: 50,
     timer: 0,
     isBoss: true,
     anim: 0
@@ -435,46 +526,58 @@ function update() {
 
   if (game.mana < game.maxMana) game.mana += 0.12;
 
+  // --- LÓGICA DE COMBATE E INTERCEPCIÓN ---
   // Héroes
   heroes.forEach((h, hIdx) => {
     h.anim += 0.1;
     let target = null;
     let minDist = Infinity;
+
     enemies.forEach(e => {
       let d = Math.hypot(e.x - h.x, e.y - h.y);
       if (d < minDist) { minDist = d; target = e; }
     });
 
     if (target && minDist <= h.range) {
+      // Detenerse y Atacar
       h.timer++;
       if (h.timer >= h.atkSpeed) {
         h.timer = 0;
-        projectiles.push({ x: h.x + 10, y: h.y - 30, target: target, dmg: h.dmg, speed: 10, type: h.type });
+        if (h.type === 'knight' || h.type === 'paladin') {
+          target.hp -= h.dmg; // Daño directo cuerpo a cuerpo
+        } else {
+          projectiles.push({ x: h.x + 10, y: h.y - 30, target: target, dmg: h.dmg, speed: 10, type: h.type });
+        }
       }
     } else {
+      // Avanzar si no hay objetivos en rango
       h.x += h.speed;
     }
 
     if (h.hp <= 0) heroes.splice(hIdx, 1);
   });
 
-  // Enemigos
+  // Enemigos (Bloqueo e Intercepción activa)
   enemies.forEach((e, eIdx) => {
     e.anim += 0.1;
     let target = null;
     let minDist = Infinity;
+
+    // Buscar el héroe más cercano
     heroes.forEach(h => {
       let d = Math.hypot(h.x - e.x, h.y - e.y);
       if (d < minDist) { minDist = d; target = h; }
     });
 
     if (target && minDist <= e.range) {
+      // DETENERSE al encontrar un héroe en su rango de ataque (¡Bloqueado!)
       e.timer++;
       if (e.timer >= e.atkSpeed) {
         e.timer = 0;
         target.hp -= e.dmg;
       }
     } else if (e.x <= 160) {
+      // Llegó a la Base/Castillo
       e.timer++;
       if (e.timer >= e.atkSpeed) {
         e.timer = 0;
@@ -483,6 +586,7 @@ function update() {
         }
       }
     } else {
+      // Solo avanza si NO hay héroes bloqueándolo
       e.x -= e.speed;
     }
 
@@ -587,12 +691,59 @@ function handleGameOverAction() {
   }
 }
 
+function drawBackground() {
+  // 1. Cielo Gradiente Nocturno
+  let skyGrad = ctx.createLinearGradient(0, 0, 0, 270);
+  skyGrad.addColorStop(0, '#030712');
+  skyGrad.addColorStop(0.6, '#0f172a');
+  skyGrad.addColorStop(1, '#1e1b4b');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, canvas.width, 270);
+
+  // Estrellas
+  ctx.fillStyle = '#ffffff';
+  stars.forEach(s => {
+    ctx.globalAlpha = 0.3 + Math.sin(Date.now() * 0.002 + s.x) * 0.3;
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.globalAlpha = 1.0;
+
+  // Montañas lejanas de fondo
+  ctx.fillStyle = '#0f172a';
+  ctx.beginPath();
+  ctx.moveTo(0, 270);
+  ctx.lineTo(200, 150); ctx.lineTo(400, 270);
+  ctx.lineTo(650, 130); ctx.lineTo(900, 270);
+  ctx.lineTo(1100, 160); ctx.lineTo(1280, 270);
+  ctx.fill();
+
+  // 2. Terreno / Suelo con Textura
+  let groundGrad = ctx.createLinearGradient(0, 270, 0, 720);
+  groundGrad.addColorStop(0, '#15803d');
+  groundGrad.addColorStop(0.2, '#166534');
+  groundGrad.addColorStop(1, '#052e16');
+  ctx.fillStyle = groundGrad;
+  ctx.fillRect(0, 270, canvas.width, 450);
+
+  // Línea de horizonte pulida
+  ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, 270); ctx.lineTo(canvas.width, 270); ctx.stroke();
+
+  // Textura de pasto y camino de piedra
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+  for (let x = 0; x < canvas.width; x += 40) {
+    for (let y = 280; y < canvas.height; y += 35) {
+      ctx.fillRect(x + (y % 20), y, 18, 6);
+    }
+  }
+}
+
 function drawCastle() {
   ctx.save();
-  ctx.drawImage(assets.castle, -10, 100, 170, 500);
+  ctx.drawImage(assets.castle, -20, 80, 190, 480);
 
   // Barra de Vida de la Base
-  let barW = 120, barH = 12, barX = 10, barY = 50;
+  let barW = 120, barH = 12, barX = 15, barY = 50;
   let pct = Math.max(0, game.baseHp / game.maxBaseHp);
   ctx.fillStyle = 'rgba(15, 23, 42, 0.9)'; ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
   ctx.fillStyle = '#ef4444'; ctx.fillRect(barX, barY, barW, barH);
@@ -606,7 +757,7 @@ function drawHeroModel(type, x, y, anim) {
   ctx.save();
   ctx.translate(x, y + Math.sin(anim) * 3);
   let img = assets.heroes[type];
-  ctx.drawImage(img, -24, -50, 48, 52);
+  ctx.drawImage(img, -30, -60, 60, 65);
   ctx.restore();
 }
 
@@ -614,51 +765,43 @@ function drawEnemyModel(x, y, anim, isBoss) {
   ctx.save();
   ctx.translate(x, y + Math.sin(anim) * 4);
   let img = isBoss ? assets.enemies.boss : assets.enemies.villain;
-  let size = isBoss ? 90 : 48;
-  ctx.drawImage(img, -size/2, -size, size, size);
+  let size = isBoss ? 100 : 60;
+  ctx.drawImage(img, -size/2, -size + 10, size, size);
   ctx.restore();
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  let bgGradient = ctx.createLinearGradient(0, 0, 0, 720);
-  bgGradient.addColorStop(0, '#090d16'); bgGradient.addColorStop(0.4, '#1e112a'); bgGradient.addColorStop(1, '#0a0512');
-  ctx.fillStyle = bgGradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  let floorGrad = ctx.createLinearGradient(0, 270, 0, 720);
-  floorGrad.addColorStop(0, '#166534'); floorGrad.addColorStop(0.15, '#14532d'); floorGrad.addColorStop(1, '#052e16');
-  ctx.fillStyle = floorGrad;
-  ctx.fillRect(0, 270, canvas.width, 450);
-
-  ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(0, 270); ctx.lineTo(canvas.width, 270); ctx.stroke();
-
+  drawBackground();
   drawCastle();
 
+  // Sombras elípticas
   heroes.concat(enemies).forEach(u => {
-    let rx = u.isBoss ? 45 : 18;
+    let rx = u.isBoss ? 45 : 20;
     ctx.beginPath();
     ctx.ellipse(u.x, u.y, rx, rx / 2.5, 0, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
     ctx.fill();
   });
 
+  // Dibujar Héroes
   heroes.forEach(h => {
     drawHeroModel(h.type, h.x, h.y, h.anim);
-    ctx.fillStyle = '#000'; ctx.fillRect(h.x - 16, h.y - 60, 32, 5);
-    ctx.fillStyle = '#38bdf8'; ctx.fillRect(h.x - 15, h.y - 59, (h.hp / h.maxHp) * 30, 3);
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x - 18, h.y - 68, 36, 6);
+    ctx.fillStyle = '#38bdf8'; ctx.fillRect(h.x - 17, h.y - 67, (h.hp / h.maxHp) * 34, 4);
   });
 
+  // Dibujar Enemigos
   enemies.forEach(e => {
     drawEnemyModel(e.x, e.y, e.anim, e.isBoss);
     if (!e.isBoss) {
-      ctx.fillStyle = '#000'; ctx.fillRect(e.x - 16, e.y - 60, 32, 5);
-      ctx.fillStyle = '#ef4444'; ctx.fillRect(e.x - 15, e.y - 59, (e.hp / e.maxHp) * 30, 3);
+      ctx.fillStyle = '#000'; ctx.fillRect(e.x - 18, e.y - 68, 36, 6);
+      ctx.fillStyle = '#ef4444'; ctx.fillRect(e.x - 17, e.y - 67, (e.hp / e.maxHp) * 34, 4);
     }
   });
 
+  // Proyectiles
   projectiles.forEach(p => {
     ctx.save();
     if (p.type === 'mage') {
@@ -666,11 +809,12 @@ function draw() {
       ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2); ctx.fill();
     } else {
       ctx.fillStyle = '#38bdf8'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 8;
-      ctx.fillRect(p.x, p.y, 10, 4);
+      ctx.fillRect(p.x, p.y, 12, 4);
     }
     ctx.restore();
   });
 
+  // Partículas
   particles.forEach(pt => {
     ctx.fillStyle = pt.color; ctx.fillRect(pt.x, pt.y, 4, 4);
   });
