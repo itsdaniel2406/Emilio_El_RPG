@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Emolio el RPG v7.0 - Ultimate Castle Edition</title>
+  <title>Emolio RPG v8.0 - External Assets Integration</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Roboto, sans-serif; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; }
@@ -26,7 +26,6 @@
       box-shadow: 0 0 20px rgba(0,0,0,0.8);
     }
 
-    /* Pantalla de rotación */
     #rotate-screen {
       display: none;
       position: fixed;
@@ -45,7 +44,6 @@
       #rotate-screen { display: flex; }
     }
 
-    /* HUD Superior Izquierdo */
     #hud {
       position: absolute;
       top: 10px;
@@ -66,7 +64,6 @@
       box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
     }
 
-    /* Panel Superior Derecho */
     #top-controls {
       position: absolute;
       top: 10px;
@@ -93,7 +90,6 @@
     #reload-btn { border-color: #f59e0b; color: #fbbf24; }
     #fs-btn { border-color: #a855f7; color: #c084fc; }
 
-    /* Marca de agua */
     #watermark {
       position: absolute;
       bottom: 75px;
@@ -108,7 +104,6 @@
       text-shadow: 0 0 4px rgba(0,0,0,0.8);
     }
 
-    /* Barra Inferior de Héroes */
     #hero-bar {
       position: absolute;
       bottom: 12px;
@@ -141,7 +136,6 @@
     .hero-btn span { font-size: 10px; color: #fbbf24; margin-top: 2px; }
     .hero-btn:disabled { opacity: 0.3; border-color: #64748b; }
 
-    /* Barra del Jefe */
     #boss-bar-container {
       position: absolute;
       top: 55px;
@@ -162,7 +156,6 @@
     .boss-hp-bg { width: 100%; height: 10px; background: #450a0a; border-radius: 4px; overflow: hidden; }
     #boss-hp-fill { width: 100%; height: 100%; background: #ef4444; transition: width 0.1s; }
 
-    /* Modales */
     .modal {
       position: absolute;
       inset: 0;
@@ -186,12 +179,10 @@
     .card-item p { font-size: 12px; color: #cbd5e1; }
     .btn-select { background: #f59e0b; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; color: #000; cursor: pointer; }
 
-    /* Modal Game Over */
     #gameover-modal h2 { color: #ef4444; text-shadow: 0 0 15px rgba(239, 68, 68, 0.8); font-size: 32px; }
     .go-box { background: #1e293b; border: 2px solid #ef4444; padding: 20px 30px; border-radius: 12px; text-align: center; }
     .go-btn { background: #ef4444; border: none; color: white; padding: 10px 20px; font-size: 16px; font-weight: bold; border-radius: 8px; margin-top: 15px; cursor: pointer; }
 
-    /* Toast */
     #toast {
       position: absolute; top: 50px; right: 10px; background: rgba(15, 23, 42, 0.95);
       border: 2px solid #22c55e; color: #fff; padding: 8px 14px; border-radius: 8px;
@@ -238,13 +229,11 @@
       <button class="hero-btn" onclick="spawnHero('paladin')" id="b-paladin">🛡️ Paladín<span>80 M</span></button>
     </div>
 
-    <!-- Modal Aumentos/Aumento de Nivel -->
     <div class="modal" id="card-modal">
       <h2>¡SUBIDA DE NIVEL! ELIGE UNA MEJORA</h2>
       <div class="cards-wrapper" id="cards-container"></div>
     </div>
 
-    <!-- Modal Game Over -->
     <div class="modal" id="gameover-modal">
       <div class="go-box">
         <h2>💀 ¡EL CASTILLO HA CAÍDO! 💀</h2>
@@ -257,6 +246,29 @@
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+// --- CARGA DE ASSETS DESDE URLS EXTERNAS ---
+const assets = {
+  castle: new Image(),
+  heroes: {
+    knight: new Image(),
+    archer: new Image(),
+    mage: new Image(),
+    paladin: new Image()
+  },
+  enemies: {
+    villain: new Image(),
+    boss: new Image()
+  }
+};
+
+assets.castle.src = 'https://raw.githubusercontent.com/KenneyNL/Kenney-Assets/master/Assets/Isometric%20Mini-Golf/PNG/Default/structure_castle.png';
+assets.heroes.knight.src = 'https://raw.githubusercontent.com/KenneyNL/Kenney-Assets/master/Assets/Sokoban/PNG/Default/player_05.png';
+assets.heroes.archer.src = 'https://raw.githubusercontent.com/KenneyNL/Kenney-Assets/master/Assets/Sokoban/PNG/Default/player_14.png';
+assets.heroes.mage.src = 'https://raw.githubusercontent.com/KenneyNL/Kenney-Assets/master/Assets/Sokoban/PNG/Default/player_17.png';
+assets.heroes.paladin.src = 'https://raw.githubusercontent.com/KenneyNL/Kenney-Assets/master/Assets/Sokoban/PNG/Default/player_01.png';
+assets.enemies.villain.src = 'https://raw.githubusercontent.com/KenneyNL/Kenney-Assets/master/Assets/Sokoban/PNG/Default/crate_02.png';
+assets.enemies.boss.src = 'https://raw.githubusercontent.com/KenneyNL/Kenney-Assets/master/Assets/Sokoban/PNG/Default/crate_12.png';
 
 function goFullscreen() {
   if (!document.fullscreenElement) {
@@ -421,7 +433,6 @@ function update() {
       if (d < minDist) { minDist = d; target = h; }
     });
 
-    // Colisión corregida contra el castillo en x <= 160
     if (target && minDist <= e.range) {
       e.timer++;
       if (e.timer >= e.atkSpeed) {
@@ -461,24 +472,20 @@ function update() {
     }
   });
 
-  // Aparición del Jefe Final de Oleada
   if (enemies.length === 0 && !game.bossSpawned && game.inWave) {
     spawnBoss();
   }
 
-  // Victoria de Oleada
   if (enemies.length === 0 && game.bossSpawned && game.inWave) {
     game.inWave = false;
     game.invulnerable = false;
     showCards();
   }
 
-  // Comprobar Game Over
   if (game.baseHp <= 0 && !game.paused) {
     triggerGameOver();
   }
 
-  // Proyectiles
   projectiles.forEach((p, pIdx) => {
     let dx = p.target.x - p.x;
     let dy = (p.target.y - 30) - p.y;
@@ -493,13 +500,11 @@ function update() {
     }
   });
 
-  // Partículas
   particles.forEach((pt, ptIdx) => {
     pt.x += pt.vx; pt.y += pt.vy; pt.life--;
     if (pt.life <= 0) particles.splice(ptIdx, 1);
   });
 
-  // Actualizar UI
   document.getElementById('hp-txt').innerText = Math.max(0, Math.floor(game.baseHp));
   document.getElementById('wave-txt').innerText = game.wave;
   document.getElementById('mana-txt').innerText = Math.floor(game.mana);
@@ -511,7 +516,6 @@ function update() {
   document.getElementById('b-paladin').disabled = game.mana < HERO_TYPES.paladin.cost;
 }
 
-// --- SISTEMA DE GAME OVER ---
 function triggerGameOver() {
   game.paused = true;
   game.baseHp = 0;
@@ -539,7 +543,6 @@ function handleGameOverAction() {
     resetEntities();
     startWave();
   } else {
-    // Reset Completo a Oleada 1
     game.wave = 1;
     game.chances = 2;
     game.gold = 0;
@@ -549,62 +552,19 @@ function handleGameOverAction() {
   }
 }
 
-// --- DIBUJO DEL CASTILLO DETALLADO & BARRA DE VIDA ---
-function drawDetailedCastle() {
+function drawCastle() {
   ctx.save();
 
-  // Torre Trasera Derecha
-  ctx.fillStyle = '#1e293b'; ctx.fillRect(110, 100, 45, 500);
-  ctx.fillStyle = '#0f172a'; ctx.fillRect(110, 80, 45, 20);
-
-  // Cuerpo Principal del Castillo
-  let castleGrad = ctx.createLinearGradient(0, 0, 140, 0);
-  castleGrad.addColorStop(0, '#1e293b'); castleGrad.addColorStop(0.5, '#334155'); castleGrad.addColorStop(1, '#475569');
-  ctx.fillStyle = castleGrad;
-  ctx.fillRect(0, 130, 140, 470);
-
-  // Ladrillos y Almenas
-  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
-  for (let y = 140; y < 600; y += 22) {
-    let offset = (y / 22) % 2 === 0 ? 0 : 15;
-    for (let x = offset; x < 140; x += 30) {
-      ctx.strokeRect(x, y, 30, 22);
-    }
+  if (assets.castle.complete && assets.castle.naturalWidth > 0) {
+    ctx.drawImage(assets.castle, -10, 100, 170, 500);
+  } else {
+    let castleGrad = ctx.createLinearGradient(0, 0, 140, 0);
+    castleGrad.addColorStop(0, '#1e293b'); castleGrad.addColorStop(0.5, '#334155'); castleGrad.addColorStop(1, '#475569');
+    ctx.fillStyle = castleGrad;
+    ctx.fillRect(0, 130, 140, 470);
   }
 
-  // Almenas del Castillo
-  ctx.fillStyle = '#334155';
-  for (let x = 0; x < 140; x += 28) {
-    ctx.fillRect(x, 105, 18, 25);
-    ctx.strokeRect(x, 105, 18, 25);
-  }
-
-  // Ventanas Góticas con Luz Interna
-  [160, 230, 300].forEach(y => {
-    ctx.fillStyle = '#fbbf24'; ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 12;
-    ctx.beginPath(); ctx.arc(40, y, 8, Math.PI, 0); ctx.fillRect(32, y, 16, 20); ctx.fill();
-    ctx.beginPath(); ctx.arc(90, y, 8, Math.PI, 0); ctx.fillRect(82, y, 16, 20); ctx.fill();
-    ctx.shadowBlur = 0;
-  });
-
-  // Gran Portón de Madera con Cadenas
-  let gateGrad = ctx.createLinearGradient(70, 0, 140, 0);
-  gateGrad.addColorStop(0, '#451a03'); gateGrad.addColorStop(1, '#78350f');
-  ctx.fillStyle = gateGrad;
-  ctx.beginPath();
-  ctx.arc(110, 410, 35, Math.PI, Math.PI * 2);
-  ctx.fillRect(75, 410, 70, 90);
-  ctx.fill(); ctx.stroke();
-
-  // Banderines Rojos Flameando
-  ctx.fillStyle = '#dc2626';
-  ctx.beginPath(); ctx.moveTo(15, 105); ctx.lineTo(15, 75); ctx.lineTo(40, 85); ctx.closePath(); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(125, 105); ctx.lineTo(125, 75); ctx.lineTo(150, 85); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = '#78350f'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(15, 105); ctx.lineTo(15, 70); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(125, 105); ctx.lineTo(125, 70); ctx.stroke();
-
-  // --- BARRA DE VIDA VISUAL FLOTANTE SOBRE EL CASTILLO ---
+  // Barra de Vida
   let barW = 120, barH = 12, barX = 10, barY = 50;
   let pct = Math.max(0, game.baseHp / game.maxBaseHp);
   ctx.fillStyle = 'rgba(15, 23, 42, 0.9)'; ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
@@ -619,59 +579,37 @@ function drawHeroModel(type, x, y, anim) {
   ctx.save();
   ctx.translate(x, y + Math.sin(anim) * 3);
 
-  if (type === 'knight') {
-    ctx.fillStyle = '#94a3b8'; ctx.beginPath(); ctx.arc(0, -45, 10, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#38bdf8'; ctx.fillRect(-6, -47, 12, 3);
-    ctx.fillStyle = '#0284c7'; ctx.fillRect(-10, -35, 20, 22);
-    ctx.fillStyle = '#16a34a'; ctx.fillRect(-12, -33, 4, 25);
-    ctx.fillStyle = '#cbd5e1'; ctx.fillRect(10, -50, 6, 35);
-    ctx.fillStyle = '#38bdf8'; ctx.fillRect(8, -25, 10, 4);
-  } else if (type === 'archer') {
-    ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(0, -43, 9, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#15803d'; ctx.fillRect(-8, -34, 16, 20);
-    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.arc(10, -25, 18, -Math.PI/2, Math.PI/2); ctx.stroke();
-  } else if (type === 'mage') {
-    ctx.fillStyle = '#7e22ce';
-    ctx.beginPath(); ctx.moveTo(-14, -45); ctx.lineTo(14, -45); ctx.lineTo(0, -68); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#6b21a8'; ctx.fillRect(-10, -45, 20, 32);
-    ctx.fillStyle = '#78350f'; ctx.fillRect(10, -50, 4, 38);
-    ctx.fillStyle = '#c084fc'; ctx.shadowColor = '#c084fc'; ctx.shadowBlur = 10;
-    ctx.beginPath(); ctx.arc(12, -52, 7, 0, Math.PI*2); ctx.fill();
-  } else if (type === 'paladin') {
-    ctx.fillStyle = '#f59e0b'; ctx.fillRect(-14, -42, 28, 28);
-    ctx.fillStyle = '#fef08a'; ctx.fillRect(-8, -52, 16, 12);
-    ctx.fillStyle = '#eab308'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-    ctx.fillRect(-20, -38, 10, 26); ctx.strokeRect(-20, -38, 10, 26);
+  let img = assets.heroes[type];
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, -24, -50, 48, 52);
+  } else {
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(-12, -35, 24, 35);
   }
 
-  ctx.fillStyle = '#1e293b';
-  ctx.fillRect(-6, -13, 5, 13); ctx.fillRect(1, -13, 5, 13);
   ctx.restore();
 }
 
 function drawEnemyModel(x, y, anim, isBoss) {
   ctx.save();
   ctx.translate(x, y + Math.sin(anim) * 4);
-  let s = isBoss ? 2.2 : 1.1;
-  ctx.scale(s, s);
+  
+  let img = isBoss ? assets.enemies.boss : assets.enemies.villain;
+  let size = isBoss ? 90 : 48;
 
-  ctx.fillStyle = isBoss ? '#450a0a' : '#334155'; ctx.fillRect(-12, -38, 24, 26);
-  ctx.fillStyle = '#dc2626';
-  ctx.beginPath(); ctx.moveTo(-8, -48); ctx.lineTo(-16, -62); ctx.lineTo(-4, -50); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(8, -48); ctx.lineTo(16, -62); ctx.lineTo(4, -50); ctx.fill();
-  ctx.fillStyle = isBoss ? '#7f1d1d' : '#1e293b'; ctx.fillRect(-9, -50, 18, 14);
-  ctx.fillStyle = '#ef4444'; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 8;
-  ctx.fillRect(-6, -46, 4, 3); ctx.fillRect(2, -46, 4, 3);
-  ctx.fillStyle = '#0f172a'; ctx.fillRect(-18, -32, 6, 20);
-  ctx.fillRect(-8, -12, 6, 12); ctx.fillRect(2, -12, 6, 12);
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, -size/2, -size, size, size);
+  } else {
+    ctx.fillStyle = isBoss ? '#450a0a' : '#ef4444';
+    ctx.fillRect(-15, -40, 30, 40);
+  }
+
   ctx.restore();
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Fondo
   let bgGradient = ctx.createLinearGradient(0, 0, 0, 720);
   bgGradient.addColorStop(0, '#090d16'); bgGradient.addColorStop(0.4, '#1e112a'); bgGradient.addColorStop(1, '#0a0512');
   ctx.fillStyle = bgGradient;
@@ -685,10 +623,8 @@ function draw() {
   ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(0, 270); ctx.lineTo(canvas.width, 270); ctx.stroke();
 
-  // Dibujar Castillo Ilustrado
-  drawDetailedCastle();
+  drawCastle();
 
-  // Sombras
   heroes.concat(enemies).forEach(u => {
     let rx = u.isBoss ? 45 : 18;
     ctx.beginPath();
@@ -697,23 +633,20 @@ function draw() {
     ctx.fill();
   });
 
-  // Héroes
   heroes.forEach(h => {
     drawHeroModel(h.type, h.x, h.y, h.anim);
-    ctx.fillStyle = '#000'; ctx.fillRect(h.x - 16, h.y - 68, 32, 5);
-    ctx.fillStyle = '#38bdf8'; ctx.fillRect(h.x - 15, h.y - 67, (h.hp / h.maxHp) * 30, 3);
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x - 16, h.y - 60, 32, 5);
+    ctx.fillStyle = '#38bdf8'; ctx.fillRect(h.x - 15, h.y - 59, (h.hp / h.maxHp) * 30, 3);
   });
 
-  // Enemigos
   enemies.forEach(e => {
     drawEnemyModel(e.x, e.y, e.anim, e.isBoss);
     if (!e.isBoss) {
-      ctx.fillStyle = '#000'; ctx.fillRect(e.x - 16, e.y - 68, 32, 5);
-      ctx.fillStyle = '#ef4444'; ctx.fillRect(e.x - 15, e.y - 67, (e.hp / e.maxHp) * 30, 3);
+      ctx.fillStyle = '#000'; ctx.fillRect(e.x - 16, e.y - 60, 32, 5);
+      ctx.fillStyle = '#ef4444'; ctx.fillRect(e.x - 15, e.y - 59, (e.hp / e.maxHp) * 30, 3);
     }
   });
 
-  // Proyectiles
   projectiles.forEach(p => {
     ctx.save();
     if (p.type === 'mage') {
@@ -726,20 +659,15 @@ function draw() {
     ctx.restore();
   });
 
-  // Partículas
   particles.forEach(pt => {
     ctx.fillStyle = pt.color; ctx.fillRect(pt.x, pt.y, 4, 4);
   });
 }
 
-// --- POOL DE CARTAS Y PODERES ESPECIALES AL AZAR ---
 const ALL_CARDS = [
-  // Aumentos Estadísticos
   { title: "⚡ Ataque Veloz", desc: "+20% Velocidad de ataque general", run: () => Object.values(HERO_TYPES).forEach(h => h.atkSpeed *= 0.8) },
   { title: "🗡️ Filo Afilado", desc: "+25% Daño de Héroes", run: () => Object.values(HERO_TYPES).forEach(h => h.dmg *= 1.25) },
   { title: "🏰 Reparar Base", desc: "+300 Vida a la torre", run: () => game.baseHp = Math.min(game.maxBaseHp, game.baseHp + 300) },
-  
-  // 4 PODERES ADICIONALES ESPECIALES
   { 
     title: "💥 BOMBA DIVINA", 
     desc: "¡PODER ÉPICO! Elimina instantáneamente a toda la oleada actual.", 
@@ -780,7 +708,6 @@ function showCards() {
   const container = document.getElementById('cards-container');
   container.innerHTML = '';
 
-  // Selecciona 3 cartas al azar de la pool completa de 7
   let shuffled = [...ALL_CARDS].sort(() => 0.5 - Math.random());
   let selectedCards = shuffled.slice(0, 3);
 
