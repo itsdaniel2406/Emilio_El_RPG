@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Emilio RPG v11.0 - Mana Boost & Bosses</title>
+  <title>Emilio RPG v12.0 - Equipment, Custom Hero & Fixed UI</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Roboto, sans-serif; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; }
@@ -44,52 +44,61 @@
       #rotate-screen { display: flex; }
     }
 
-    #hud {
+    /* TOP BAR REESTRUCTURADA PARA EVITAR TRASLAPES */
+    #top-bar-container {
       position: absolute;
-      top: 10px;
+      top: 6px;
       left: 10px;
-      display: flex;
-      gap: 10px;
-      pointer-events: none;
-      z-index: 10;
-    }
-    .hud-card {
-      background: rgba(15, 23, 42, 0.85);
-      border: 2px solid #3b82f6;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 13px;
-      color: #f8fafc;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-    }
-    .mana-boost {
-      font-size: 10px;
-      color: #38bdf8;
-      margin-left: 2px;
-    }
-
-    #top-controls {
-      position: absolute;
-      top: 10px;
       right: 10px;
       display: flex;
-      flex-direction: row;
-      gap: 6px;
+      justify-content: space-between;
+      align-items: center;
       z-index: 15;
+      pointer-events: none;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    #hud {
+      display: flex;
+      gap: 6px;
+      pointer-events: auto;
+      flex-wrap: wrap;
+    }
+    .hud-card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1.5px solid #3b82f6;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 11px;
+      color: #f8fafc;
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+      white-space: nowrap;
+    }
+    .mana-boost { font-size: 9px; color: #38bdf8; margin-left: 2px; }
+
+    #top-controls {
+      display: flex;
+      gap: 4px;
+      pointer-events: auto;
+      flex-wrap: wrap;
     }
     .top-btn {
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid #64748b;
       color: white;
-      padding: 6px 10px;
+      padding: 5px 8px;
       border-radius: 6px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.2s;
+      white-space: nowrap;
     }
     .top-btn:active { transform: scale(0.95); }
+    #shop-btn { border-color: #eab308; color: #fde047; }
+    #champ-btn { border-color: #ec4899; color: #f472b6; }
     #save-btn { border-color: #22c55e; color: #4ade80; }
     #load-btn { border-color: #3b82f6; color: #60a5fa; }
     #reload-btn { border-color: #f59e0b; color: #fbbf24; }
@@ -99,7 +108,7 @@
       position: absolute;
       bottom: 85px;
       left: 15px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       color: rgba(255, 255, 255, 0.45);
       letter-spacing: 1.5px;
@@ -111,91 +120,116 @@
 
     #hero-bar {
       position: absolute;
-      bottom: 12px;
+      bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 8px;
+      gap: 6px;
       background: rgba(15, 23, 42, 0.92);
-      padding: 8px 12px;
-      border-radius: 14px;
+      padding: 6px 10px;
+      border-radius: 12px;
       border: 2px solid #475569;
       box-shadow: 0 0 15px rgba(0,0,0,0.8);
       z-index: 10;
-      max-width: 95vw;
+      max-width: 98vw;
       overflow-x: auto;
     }
     .hero-btn {
       background: #1e293b;
       border: 2px solid #3b82f6;
       color: #fff;
-      padding: 6px 10px;
+      padding: 5px 8px;
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
-      font-size: 11px;
+      font-size: 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
       touch-action: manipulation;
-      min-width: 80px;
+      min-width: 75px;
     }
     .hero-btn:active { transform: scale(0.95); }
-    .hero-btn span { font-size: 9px; color: #fbbf24; margin-top: 2px; }
+    .hero-btn span { font-size: 8px; color: #fbbf24; margin-top: 2px; }
     .hero-btn:disabled { opacity: 0.3; border-color: #64748b; }
     .hero-btn.locked { border-color: #ef4444; background: #331010; color: #94a3b8; }
+    .hero-btn.champ-spawn { border-color: #ec4899; background: #31122b; }
 
     #boss-bar-container {
       position: absolute;
-      top: 55px;
+      top: 45px;
       left: 50%;
       transform: translateX(-50%);
-      width: 420px;
-      background: rgba(15, 23, 42, 0.9);
+      width: 360px;
+      background: rgba(15, 23, 42, 0.95);
       border: 2px solid #ef4444;
       border-radius: 8px;
-      padding: 6px 12px;
+      padding: 5px 10px;
       display: none;
       flex-direction: column;
       align-items: center;
       z-index: 12;
       box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
     }
-    #boss-title { font-size: 12px; font-weight: bold; color: #fca5a5; margin-bottom: 4px; text-transform: uppercase; }
-    .boss-hp-bg { width: 100%; height: 10px; background: #450a0a; border-radius: 4px; overflow: hidden; }
+    #boss-title { font-size: 11px; font-weight: bold; color: #fca5a5; margin-bottom: 3px; text-transform: uppercase; }
+    .boss-hp-bg { width: 100%; height: 9px; background: #450a0a; border-radius: 4px; overflow: hidden; }
     #boss-hp-fill { width: 100%; height: 100%; background: #ef4444; transition: width 0.1s; }
 
     .modal {
       position: absolute;
       inset: 0;
-      background: rgba(2, 6, 23, 0.94);
+      background: rgba(2, 6, 23, 0.95);
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 20;
+      padding: 15px;
     }
-    .modal h2 { font-size: 24px; color: #fbbf24; margin-bottom: 15px; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
-    .cards-wrapper { display: flex; gap: 15px; }
+    .modal h2 { font-size: 22px; color: #fbbf24; margin-bottom: 12px; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+    .cards-wrapper { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
     .card-item {
-      width: 170px; height: 230px; background: #1e293b; border: 3px solid #f59e0b;
-      border-radius: 12px; padding: 14px; display: flex; flex-direction: column;
+      width: 160px; height: 210px; background: #1e293b; border: 2px solid #f59e0b;
+      border-radius: 12px; padding: 12px; display: flex; flex-direction: column;
       justify-content: space-between; align-items: center; text-align: center; cursor: pointer;
       transition: transform 0.2s;
     }
-    .card-item:hover { transform: translateY(-5px); border-color: #38bdf8; }
-    .card-item h3 { color: #fbbf24; font-size: 14px; }
-    .card-item p { font-size: 11px; color: #cbd5e1; }
-    .btn-select { background: #f59e0b; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; color: #000; cursor: pointer; }
+    .card-item:hover { transform: translateY(-4px); border-color: #38bdf8; }
+    .card-item h3 { color: #fbbf24; font-size: 13px; }
+    .card-item p { font-size: 10px; color: #cbd5e1; }
+    .btn-select { background: #f59e0b; border: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; color: #000; cursor: pointer; font-size: 11px; }
 
-    #gameover-modal h2 { color: #ef4444; text-shadow: 0 0 15px rgba(239, 68, 68, 0.8); font-size: 30px; }
+    .shop-box, .champ-box {
+      background: #1e293b; border: 2px solid #eab308; border-radius: 14px; padding: 20px;
+      max-width: 500px; width: 90%; display: flex; flex-direction: column; gap: 12px; text-align: center;
+    }
+    .shop-item {
+      display: flex; justify-content: space-between; align-items: center; background: #0f172a;
+      padding: 10px 14px; border-radius: 8px; border: 1px solid #334155;
+    }
+    .shop-item div { text-align: left; }
+    .shop-item h4 { color: #fde047; font-size: 13px; }
+    .shop-item p { font-size: 10px; color: #94a3b8; }
+    .btn-buy { background: #eab308; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; color: #000; cursor: pointer; }
+    .btn-close { background: #64748b; border: none; color: white; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; align-self: center; margin-top: 5px; }
+
+    .avatar-picker { display: flex; gap: 10px; justify-content: center; margin: 10px 0; }
+    .avatar-option { width: 50px; height: 50px; border: 2px solid #475569; border-radius: 10px; cursor: pointer; background: #0f172a; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .avatar-option.selected { border-color: #ec4899; background: #31122b; }
+
+    input[type="text"] {
+      background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px 12px;
+      border-radius: 6px; font-size: 14px; text-align: center; width: 100%;
+    }
+
+    #gameover-modal h2 { color: #ef4444; text-shadow: 0 0 15px rgba(239, 68, 68, 0.8); font-size: 26px; }
     .go-box { background: #1e293b; border: 2px solid #ef4444; padding: 20px 30px; border-radius: 12px; text-align: center; }
-    .go-btn { background: #ef4444; border: none; color: white; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; margin-top: 15px; cursor: pointer; }
+    .go-btn { background: #ef4444; border: none; color: white; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 8px; margin-top: 12px; cursor: pointer; }
 
     #toast {
-      position: absolute; top: 50px; right: 10px; background: rgba(15, 23, 42, 0.95);
+      position: absolute; top: 45px; right: 10px; background: rgba(15, 23, 42, 0.95);
       border: 2px solid #22c55e; color: #fff; padding: 8px 14px; border-radius: 8px;
-      font-size: 12px; font-weight: bold; display: none; z-index: 25;
+      font-size: 11px; font-weight: bold; display: none; z-index: 25;
     }
   </style>
 </head>
@@ -207,18 +241,23 @@
   </div>
 
   <div id="game-container">
-    <div id="hud">
-      <div class="hud-card">🏰 Base: <span id="hp-txt">1000</span></div>
-      <div class="hud-card">⚔️ Oleada: <span id="wave-txt">1</span></div>
-      <div class="hud-card">💧 Maná: <span id="mana-txt">100</span><span class="mana-boost" id="mana-boost-txt">(+0.0%)</span></div>
-      <div class="hud-card">🪙 Oro: <span id="gold-txt">0</span></div>
-    </div>
 
-    <div id="top-controls">
-      <button class="top-btn" id="save-btn" onclick="saveGame()">💾 Guardar</button>
-      <button class="top-btn" id="load-btn" onclick="loadGame()">📂 Cargar</button>
-      <button class="top-btn" id="reload-btn" onclick="location.reload(true)">🔄 Recargar</button>
-      <button class="top-btn" id="fs-btn" onclick="goFullscreen()">⛶ Pantalla Completa</button>
+    <div id="top-bar-container">
+      <div id="hud">
+        <div class="hud-card">🏰 Base: <span id="hp-txt">1000</span></div>
+        <div class="hud-card">⚔️ Oleada: <span id="wave-txt">1</span></div>
+        <div class="hud-card">💧 Maná: <span id="mana-txt">100</span><span class="mana-boost" id="mana-boost-txt">(+0.0%)</span></div>
+        <div class="hud-card">🪙 Oro: <span id="gold-txt">0</span></div>
+      </div>
+
+      <div id="top-controls">
+        <button class="top-btn" id="shop-btn" onclick="openShop()">🛒 Tienda Armas</button>
+        <button class="top-btn" id="champ-btn" onclick="openChampMenu()">👑 Campeón</button>
+        <button class="top-btn" id="save-btn" onclick="saveGame()">💾 Guardar</button>
+        <button class="top-btn" id="load-btn" onclick="loadGame()">📂 Cargar</button>
+        <button class="top-btn" id="reload-btn" onclick="location.reload(true)">🔄 Recargar</button>
+        <button class="top-btn" id="fs-btn" onclick="goFullscreen()">⛶ Pantalla Completa</button>
+      </div>
     </div>
 
     <div id="boss-bar-container">
@@ -232,14 +271,56 @@
     <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
     <div id="hero-bar">
+      <button class="hero-btn champ-spawn" onclick="spawnChampion()" id="b-champ"><span id="b-champ-name">👑 Emilio</span><span id="b-champ-cost">150 Oro</span></button>
       <button class="hero-btn" onclick="spawnHero('knight')" id="b-knight">🗡️ Guerrero<span>30 M</span></button>
       <button class="hero-btn" onclick="spawnHero('archer')" id="b-archer">🏹 Arquera<span>40 M</span></button>
       <button class="hero-btn" onclick="spawnHero('mage')" id="b-mage">🔥 Mago<span>60 M</span></button>
       <button class="hero-btn" onclick="spawnHero('paladin')" id="b-paladin">🛡️ Paladín<span>80 M</span></button>
-      <!-- Héroes Desbloqueables -->
       <button class="hero-btn locked" onclick="spawnHero('assassin')" id="b-assassin">🥷 Asesino<span>35 M (Niv 20)</span></button>
       <button class="hero-btn locked" onclick="spawnHero('druid')" id="b-druid">🌿 Druida<span>70 M (Niv 33)</span></button>
       <button class="hero-btn locked" onclick="spawnHero('titan')" id="b-titan">⚡ Titán<span>120 M (Niv 41)</span></button>
+    </div>
+
+    <!-- MODAL TIENDA ARMAS -->
+    <div class="modal" id="shop-modal">
+      <div class="shop-box">
+        <h2 style="color:#fde047;">🛡️ TIENDA DE ARMAS Y EQUIPO</h2>
+        <div class="shop-item">
+          <div>
+            <h4>🗡️ Espada Legendaria (Nivel <span id="wpn-lvl">0</span>)</h4>
+            <p>Aumenta el daño de todas tus tropas en +15%</p>
+          </div>
+          <button class="btn-buy" onclick="buyWeapon()">Comprar (<span id="wpn-cost">100</span> 🪙)</button>
+        </div>
+        <div class="shop-item">
+          <div>
+            <h4>🛡️ Armadura de Titanio (Nivel <span id="arm-lvl">0</span>)</h4>
+            <p>Aumenta la vida de todas tus tropas en +20%</p>
+          </div>
+          <button class="btn-buy" onclick="buyArmor()">Comprar (<span id="arm-cost">120</span> 🪙)</button>
+        </div>
+        <button class="btn-close" onclick="closeModal('shop-modal')">Cerrar</button>
+      </div>
+    </div>
+
+    <!-- MODAL PERSONALIZACIÓN CAMPEÓN -->
+    <div class="modal" id="champ-modal">
+      <div class="champ-box">
+        <h2 style="color:#f472b6;">👑 CONFIGURACIÓN DEL CAMPEÓN</h2>
+        <p style="font-size:12px; color:#cbd5e1;">Tu súper héroe con IA avanzada, mayor resistencia y búsqueda proactiva de jefes.</p>
+        
+        <input type="text" id="champ-name-input" maxlength="12" value="Emilio" placeholder="Nombre del héroe">
+        
+        <div class="avatar-picker">
+          <div class="avatar-option selected" onclick="selectAvatar('gold_knight', this)">👑</div>
+          <div class="avatar-option" onclick="selectAvatar('shadow_ninja', this)">🥷</div>
+          <div class="avatar-option" onclick="selectAvatar('druid_guardian', this)">🌿</div>
+          <div class="avatar-option" onclick="selectAvatar('celestial_valkyrie', this)">✨</div>
+        </div>
+
+        <button class="btn-buy" style="background:#ec4899; color:white;" onclick="saveChampionConfig()">Guardar Campeón</button>
+        <button class="btn-close" onclick="closeModal('champ-modal')">Cerrar</button>
+      </div>
     </div>
 
     <div class="modal" id="card-modal">
@@ -250,7 +331,7 @@
     <div class="modal" id="gameover-modal">
       <div class="go-box">
         <h2>💀 ¡EL CASTILLO HA CAÍDO! 💀</h2>
-        <p style="margin-top:10px; font-size:16px;" id="go-chances-txt">Chances restantes para continuar: 2</p>
+        <p style="margin-top:10px; font-size:15px;" id="go-chances-txt">Chances restantes para continuar: 2</p>
         <button class="go-btn" id="go-action-btn" onclick="handleGameOverAction()">REINTENTAR OLEADA</button>
       </div>
     </div>
@@ -320,6 +401,31 @@ const assets = {
       <path d="M 10 25 L 60 25 L 65 75 L 5 75 Z" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
       <circle cx="35" cy="16" r="14" fill="#64748b"/>
       <rect x="52" y="10" width="10" height="60" fill="#fbbf24"/>
+    </svg>`),
+
+    // AVATARES CAMPEÓN
+    gold_knight: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 80">
+      <path d="M 12 25 L 58 25 L 62 75 L 8 75 Z" fill="#eab308" stroke="#713f12" stroke-width="3"/>
+      <circle cx="35" cy="16" r="13" fill="#fef08a"/>
+      <polygon points="35,-5 25,10 45,10" fill="#dc2626"/>
+      <rect x="52" y="5" width="6" height="60" fill="#f8fafc" stroke="#475569"/>
+    </svg>`),
+    shadow_ninja: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 80">
+      <path d="M 12 25 L 58 25 L 62 75 L 8 75 Z" fill="#18181b" stroke="#a1a1aa" stroke-width="2"/>
+      <circle cx="35" cy="16" r="13" fill="#27272a"/>
+      <circle cx="30" cy="16" r="3" fill="#ec4899"/>
+      <circle cx="40" cy="16" r="3" fill="#ec4899"/>
+    </svg>`),
+    druid_guardian: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 80">
+      <path d="M 12 25 L 58 25 L 62 75 L 8 75 Z" fill="#15803d" stroke="#14532d" stroke-width="3"/>
+      <circle cx="35" cy="16" r="13" fill="#22c55e"/>
+      <circle cx="35" cy="-2" r="10" fill="#4ade80"/>
+    </svg>`),
+    celestial_valkyrie: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 80">
+      <path d="M 12 25 L 58 25 L 62 75 L 8 75 Z" fill="#0284c7" stroke="#0369a1" stroke-width="3"/>
+      <circle cx="35" cy="16" r="13" fill="#38bdf8"/>
+      <path d="M -5 20 Q 20 0 12 50 Z" fill="#f0f9ff"/>
+      <path d="M 75 20 Q 50 0 58 50 Z" fill="#f0f9ff"/>
     </svg>`)
   },
 
@@ -330,14 +436,12 @@ const assets = {
       <circle cx="25" cy="16" r="3" fill="#ef4444"/>
       <circle cx="35" cy="16" r="3" fill="#ef4444"/>
     </svg>`),
-
     boss_dark: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 90">
       <path d="M 15 35 L 65 35 L 70 82 L 10 82 Z" fill="#450a0a"/>
       <circle cx="40" cy="22" r="15" fill="#991b1b"/>
       <circle cx="34" cy="20" r="3" fill="#fef08a"/>
       <circle cx="46" cy="20" r="3" fill="#fef08a"/>
     </svg>`),
-
     boss_zombie: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 90">
       <path d="M 15 35 L 65 35 L 70 82 L 10 82 Z" fill="#14532d"/>
       <circle cx="40" cy="22" r="15" fill="#16a34a"/>
@@ -345,14 +449,12 @@ const assets = {
       <circle cx="46" cy="20" r="2" fill="#a3e635"/>
       <rect x="68" y="15" width="5" height="60" fill="#78350f"/>
     </svg>`),
-
     boss_bat: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 80">
       <path d="M 0 20 Q 25 -10 45 30 Q 65 -10 90 20 Q 55 50 45 70 Q 35 50 0 20 Z" fill="#2e1065"/>
       <circle cx="45" cy="30" r="12" fill="#581c87"/>
       <circle cx="41" cy="28" r="3" fill="#ef4444"/>
       <circle cx="49" cy="28" r="3" fill="#ef4444"/>
     </svg>`),
-
     boss_batman: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 90">
       <path d="M 15 30 L 65 30 L 68 80 L 12 80 Z" fill="#090d16"/>
       <polygon points="25,15 32,0 36,15" fill="#090d16"/>
@@ -361,7 +463,6 @@ const assets = {
       <ellipse cx="40" cy="45" rx="14" ry="8" fill="#eab308"/>
       <polygon points="40,40 32,48 48,48" fill="#000"/>
     </svg>`),
-
     boss_superman: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 90">
       <path d="M 15 30 L 65 30 L 68 80 L 12 80 Z" fill="#1d4ed8"/>
       <path d="M 5 30 L 15 30 L 12 80 L 0 80 Z" fill="#dc2626"/>
@@ -399,7 +500,23 @@ let game = {
   paused: false,
   inWave: true,
   bossSpawned: false,
-  invulnerable: false
+  invulnerable: false,
+  
+  // Equipamiento
+  weaponLvl: 0,
+  armorLvl: 0,
+  
+  // Súper Campeón
+  champion: {
+    name: "Emilio",
+    avatar: "gold_knight",
+    cost: 150,
+    hp: 1500,
+    dmg: 90,
+    speed: 1.4,
+    range: 65,
+    atkSpeed: 30
+  }
 };
 
 const HERO_TYPES = {
@@ -438,17 +555,112 @@ function loadGame() {
   Object.assign(HERO_TYPES, parsed.heroTypes);
 
   resetEntities();
-  document.getElementById('card-modal').style.display = 'none';
-  document.getElementById('gameover-modal').style.display = 'none';
-  document.getElementById('boss-bar-container').style.display = 'none';
-  
+  closeAllModals();
   startWave();
+  updateShopUI();
   showToast('📂 Partida Cargada', '#3b82f6');
 }
 
 function resetEntities() {
   heroes = []; enemies = []; projectiles = []; particles = [];
   game.inWave = true; game.paused = false; game.bossSpawned = false;
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+  game.paused = false;
+}
+
+function closeAllModals() {
+  document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+  document.getElementById('boss-bar-container').style.display = 'none';
+}
+
+function openShop() {
+  game.paused = true;
+  updateShopUI();
+  document.getElementById('shop-modal').style.display = 'flex';
+}
+
+function updateShopUI() {
+  document.getElementById('wpn-lvl').innerText = game.weaponLvl;
+  document.getElementById('wpn-cost').innerText = 100 + (game.weaponLvl * 50);
+  document.getElementById('arm-lvl').innerText = game.armorLvl;
+  document.getElementById('arm-cost').innerText = 120 + (game.armorLvl * 60);
+}
+
+function buyWeapon() {
+  let cost = 100 + (game.weaponLvl * 50);
+  if (game.gold >= cost) {
+    game.gold -= cost;
+    game.weaponLvl++;
+    updateShopUI();
+    showToast('🗡️ ¡Armas Mejoradas!');
+  } else {
+    showToast('⚠️ Oro insuficiente', '#ef4444');
+  }
+}
+
+function buyArmor() {
+  let cost = 120 + (game.armorLvl * 60);
+  if (game.gold >= cost) {
+    game.gold -= cost;
+    game.armorLvl++;
+    updateShopUI();
+    showToast('🛡️ ¡Armadura Mejorada!');
+  } else {
+    showToast('⚠️ Oro insuficiente', '#ef4444');
+  }
+}
+
+function openChampMenu() {
+  game.paused = true;
+  document.getElementById('champ-name-input').value = game.champion.name;
+  document.getElementById('champ-modal').style.display = 'flex';
+}
+
+let selectedAvatarKey = "gold_knight";
+function selectAvatar(key, el) {
+  selectedAvatarKey = key;
+  document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function saveChampionConfig() {
+  const name = document.getElementById('champ-name-input').value.trim() || "Emilio";
+  game.champion.name = name;
+  game.champion.avatar = selectedAvatarKey;
+  document.getElementById('b-champ-name').innerText = `👑 ${name}`;
+  closeModal('champ-modal');
+  showToast('👑 Campeón Configurado');
+}
+
+function spawnChampion() {
+  if (game.gold >= game.champion.cost) {
+    game.gold -= game.champion.cost;
+    
+    let hpBonus = 1 + (game.armorLvl * 0.20);
+    let dmgBonus = 1 + (game.weaponLvl * 0.15);
+
+    heroes.push({
+      name: game.champion.name,
+      hp: game.champion.hp * hpBonus,
+      maxHp: game.champion.hp * hpBonus,
+      dmg: game.champion.dmg * dmgBonus,
+      range: game.champion.range,
+      speed: game.champion.speed,
+      atkSpeed: game.champion.atkSpeed,
+      type: 'champion',
+      avatar: game.champion.avatar,
+      x: 170 + Math.random() * 20,
+      y: 380 + (Math.random() * 120 - 60),
+      timer: 0,
+      anim: 0
+    });
+    showToast(`👑 ¡${game.champion.name} ha entrado al campo!`);
+  } else {
+    showToast(`⚠️ Requiere ${game.champion.cost} Oro`, '#ef4444');
+  }
 }
 
 function startWave() {
@@ -513,8 +725,15 @@ function spawnHero(typeKey) {
   }
   if (game.mana >= t.cost) {
     game.mana -= t.cost;
+    
+    let hpBonus = 1 + (game.armorLvl * 0.20);
+    let dmgBonus = 1 + (game.weaponLvl * 0.15);
+
     heroes.push({
       ...t,
+      hp: t.hp * hpBonus,
+      maxHp: t.maxHp * hpBonus,
+      dmg: t.dmg * dmgBonus,
       x: 170 + Math.random() * 30,
       y: 380 + (Math.random() * 180 - 90),
       timer: 0,
@@ -526,7 +745,6 @@ function spawnHero(typeKey) {
 function update() {
   if (game.paused) return;
 
-  // ESCALADO DE MANÁ: +0.5% por cada 5 niveles acumulados
   let manaBoostMultiplier = 1 + (Math.floor(game.wave / 5) * 0.005);
   let currentRegenRate = game.baseManaRegen * manaBoostMultiplier;
 
@@ -534,11 +752,35 @@ function update() {
     game.mana = Math.min(game.maxMana, game.mana + currentRegenRate);
   }
 
-  // Actualizar Héroes
+  // ACTUALIZACIÓN DE HÉROES CON IA MEJORADA PARA CAMPEÓN
   heroes.forEach((h, hIdx) => {
     h.anim += 0.1;
     let target = null;
     let minDist = Infinity;
+
+    // IA Avanzada del Campeón (Prioriza Jefes o enemigoss con menos vida)
+    if (h.type === 'champion') {
+      let bosses = enemies.filter(e => e.isBoss);
+      if (bosses.length > 0) {
+        // Enfocarse en el jefe más cercano
+        bosses.forEach(b => {
+          let d = Math.hypot(b.x - h.x, b.y - h.y);
+          if (d < minDist) { minDist = d; target = b; }
+        });
+      } else {
+        // Si no hay jefe, busca al enemigo con menor vida dentro del rango
+        enemies.forEach(e => {
+          let d = Math.hypot(e.x - h.x, e.y - h.y);
+          if (d < minDist) { minDist = d; target = e; }
+        });
+      }
+    } else {
+      // IA Estándar
+      enemies.forEach(e => {
+        let d = Math.hypot(e.x - h.x, e.y - h.y);
+        if (d < minDist) { minDist = d; target = e; }
+      });
+    }
 
     if (h.type === 'druid' && Math.random() < 0.05) {
       heroes.forEach(other => {
@@ -548,22 +790,22 @@ function update() {
       });
     }
 
-    enemies.forEach(e => {
-      let d = Math.hypot(e.x - h.x, e.y - h.y);
-      if (d < minDist) { minDist = d; target = e; }
-    });
-
     if (target && minDist <= h.range) {
       h.timer++;
       if (h.timer >= h.atkSpeed) {
         h.timer = 0;
-        if (['knight', 'paladin', 'assassin', 'titan'].includes(h.type)) {
+        if (['knight', 'paladin', 'assassin', 'titan', 'champion'].includes(h.type)) {
           target.hp -= h.dmg;
         } else {
           projectiles.push({ x: h.x + 10, y: h.y - 30, target: target, dmg: h.dmg, speed: 10, type: h.type });
         }
       }
     } else {
+      // Movimiento inteligente: Ajustar dirección en Y para alcanzar al objetivo
+      if (h.type === 'champion' && target) {
+        let dy = target.y - h.y;
+        if (Math.abs(dy) > 10) h.y += Math.sign(dy) * 0.5;
+      }
       h.x += h.speed;
     }
 
@@ -652,7 +894,6 @@ function update() {
 
   updateHeroButtons();
 
-  // Actualizar HUD
   document.getElementById('hp-txt').innerText = Math.max(0, Math.floor(game.baseHp));
   document.getElementById('wave-txt').innerText = game.wave;
   document.getElementById('mana-txt').innerText = Math.floor(game.mana);
@@ -672,6 +913,10 @@ function updateHeroButtons() {
       if (locked) btn.classList.add('locked'); else btn.classList.remove('locked');
     }
   });
+  
+  // Botón Campeón
+  let cBtn = document.getElementById('b-champ');
+  if (cBtn) cBtn.disabled = game.gold < game.champion.cost;
 }
 
 function triggerGameOver() {
@@ -751,12 +996,24 @@ function draw() {
   heroes.forEach(h => {
     ctx.save();
     ctx.translate(h.x, h.y + Math.sin(h.anim) * 3);
-    let img = assets.heroes[h.type];
-    ctx.drawImage(img, -30, -60, 60, 65);
+    
+    let img = (h.type === 'champion') ? assets.heroes[h.avatar] : assets.heroes[h.type];
+    let size = (h.type === 'champion') ? 70 : 60;
+    ctx.drawImage(img, -size/2, -size, size, size + 5);
+    
+    // Etiqueta Nombre Campeón
+    if (h.type === 'champion') {
+      ctx.fillStyle = '#fde047';
+      ctx.font = 'bold 11px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.fillText(h.name, 0, -size - 12);
+    }
+
     ctx.restore();
 
-    ctx.fillStyle = '#000'; ctx.fillRect(h.x - 18, h.y - 68, 36, 6);
-    ctx.fillStyle = '#38bdf8'; ctx.fillRect(h.x - 17, h.y - 67, (h.hp / h.maxHp) * 34, 4);
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x - 18, h.y - 72, 36, 6);
+    ctx.fillStyle = (h.type === 'champion') ? '#ec4899' : '#38bdf8';
+    ctx.fillRect(h.x - 17, h.y - 71, (h.hp / h.maxHp) * 34, 4);
   });
 
   // Enemigos
