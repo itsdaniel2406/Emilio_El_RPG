@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Emolio RPG v2.0 - External Assets Fixed</title>
+  <title>Emolio RPG v8.1 - Standalone Fixed Assets</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Roboto, sans-serif; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; }
@@ -247,27 +247,61 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// --- CARGA DE ASSETS CON PERMISOS CORS Y CDN COMPATIBLE CON CANVAS ---
-function createCorsImage(src) {
+// --- ASSETS AUTOCONTENIDOS (SVG DATA-URI) - NO DEPENDEN DE NINGÚN SERVIDOR EXTERNO ---
+function buildSvgAsset(svgStr) {
   const img = new Image();
-  img.crossOrigin = 'anonymous'; // OBLIGATORIO PARA RENDERIZAR EN CANVAS
-  img.src = src;
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
   return img;
 }
 
-const CDN_BASE = 'https://cdn.jsdelivr.net/gh/KenneyNL/Kenney-Assets@master/Assets/';
-
 const assets = {
-  castle: createCorsImage(CDN_BASE + 'Isometric%20Mini-Golf/PNG/Default/structure_castle.png'),
+  castle: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160">
+    <rect x="10" y="40" width="80" height="110" fill="#475569" stroke="#1e293b" stroke-width="4"/>
+    <rect x="5" y="20" width="25" height="30" fill="#64748b"/>
+    <rect x="70" y="20" width="25" height="30" fill="#64748b"/>
+    <rect x="35" y="10" width="30" height="40" fill="#334155"/>
+    <path d="M 35 10 L 50 0 L 65 10 Z" fill="#ef4444"/>
+    <rect x="40" y="100" width="20" height="50" rx="10" fill="#0f172a"/>
+  </svg>`),
   heroes: {
-    knight: createCorsImage(CDN_BASE + 'Sokoban/PNG/Default/player_05.png'),
-    archer: createCorsImage(CDN_BASE + 'Sokoban/PNG/Default/player_14.png'),
-    mage:   createCorsImage(CDN_BASE + 'Sokoban/PNG/Default/player_17.png'),
-    paladin:createCorsImage(CDN_BASE + 'Sokoban/PNG/Default/player_01.png')
+    knight: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50">
+      <circle cx="20" cy="12" r="8" fill="#fcd34d"/>
+      <path d="M 10 20 L 30 20 L 32 45 L 8 45 Z" fill="#3b82f6"/>
+      <rect x="30" y="15" width="4" height="25" fill="#94a3b8"/>
+      <rect x="27" y="22" width="10" height="3" fill="#cbd5e1"/>
+    </svg>`),
+    archer: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50">
+      <circle cx="20" cy="12" r="8" fill="#fcd34d"/>
+      <path d="M 12 20 L 28 20 L 30 45 L 10 45 Z" fill="#22c55e"/>
+      <path d="M 30 15 Q 38 27 30 40" stroke="#78350f" stroke-width="3" fill="none"/>
+    </svg>`),
+    mage: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50">
+      <path d="M 8 12 L 20 0 L 32 12 Z" fill="#a855f7"/>
+      <circle cx="20" cy="15" r="7" fill="#fcd34d"/>
+      <path d="M 10 22 L 30 22 L 34 48 L 6 48 Z" fill="#7e22ce"/>
+      <rect x="31" y="10" width="3" height="35" fill="#78350f"/>
+      <circle cx="32.5" cy="8" r="5" fill="#06b6d4"/>
+    </svg>`),
+    paladin: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50">
+      <circle cx="20" cy="12" r="9" fill="#e2e8f0"/>
+      <path d="M 8 20 L 32 20 L 34 48 L 6 48 Z" fill="#eab308"/>
+      <rect x="18" y="20" width="4" height="28" fill="#ffffff"/>
+    </svg>`)
   },
   enemies: {
-    villain: createCorsImage(CDN_BASE + 'Sokoban/PNG/Default/crate_02.png'),
-    boss:    createCorsImage(CDN_BASE + 'Sokoban/PNG/Default/crate_12.png')
+    villain: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50">
+      <circle cx="20" cy="14" r="8" fill="#ef4444"/>
+      <path d="M 10 22 L 30 22 L 32 46 L 8 46 Z" fill="#7f1d1d"/>
+      <circle cx="17" cy="12" r="2" fill="#000"/>
+      <circle cx="23" cy="12" r="2" fill="#000"/>
+    </svg>`),
+    boss: buildSvgAsset(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 70">
+      <path d="M 15 20 L 20 5 L 30 15 L 40 5 L 45 20 Z" fill="#f59e0b"/>
+      <circle cx="30" cy="22" r="12" fill="#dc2626"/>
+      <path d="M 12 34 L 48 34 L 52 68 L 8 68 Z" fill="#450a0a"/>
+      <circle cx="24" cy="20" r="3" fill="#fef08a"/>
+      <circle cx="36" cy="20" r="3" fill="#fef08a"/>
+    </svg>`)
   }
 };
 
@@ -555,17 +589,9 @@ function handleGameOverAction() {
 
 function drawCastle() {
   ctx.save();
+  ctx.drawImage(assets.castle, -10, 100, 170, 500);
 
-  if (assets.castle.complete && assets.castle.naturalWidth > 0) {
-    ctx.drawImage(assets.castle, -10, 100, 170, 500);
-  } else {
-    let castleGrad = ctx.createLinearGradient(0, 0, 140, 0);
-    castleGrad.addColorStop(0, '#1e293b'); castleGrad.addColorStop(0.5, '#334155'); castleGrad.addColorStop(1, '#475569');
-    ctx.fillStyle = castleGrad;
-    ctx.fillRect(0, 130, 140, 470);
-  }
-
-  // Barra de Vida
+  // Barra de Vida de la Base
   let barW = 120, barH = 12, barX = 10, barY = 50;
   let pct = Math.max(0, game.baseHp / game.maxBaseHp);
   ctx.fillStyle = 'rgba(15, 23, 42, 0.9)'; ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
@@ -579,32 +605,17 @@ function drawCastle() {
 function drawHeroModel(type, x, y, anim) {
   ctx.save();
   ctx.translate(x, y + Math.sin(anim) * 3);
-
   let img = assets.heroes[type];
-  if (img && img.complete && img.naturalWidth > 0) {
-    ctx.drawImage(img, -24, -50, 48, 52);
-  } else {
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(-12, -35, 24, 35);
-  }
-
+  ctx.drawImage(img, -24, -50, 48, 52);
   ctx.restore();
 }
 
 function drawEnemyModel(x, y, anim, isBoss) {
   ctx.save();
   ctx.translate(x, y + Math.sin(anim) * 4);
-  
   let img = isBoss ? assets.enemies.boss : assets.enemies.villain;
   let size = isBoss ? 90 : 48;
-
-  if (img && img.complete && img.naturalWidth > 0) {
-    ctx.drawImage(img, -size/2, -size, size, size);
-  } else {
-    ctx.fillStyle = isBoss ? '#450a0a' : '#ef4444';
-    ctx.fillRect(-15, -40, 30, 40);
-  }
-
+  ctx.drawImage(img, -size/2, -size, size, size);
   ctx.restore();
 }
 
